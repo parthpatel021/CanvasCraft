@@ -1,10 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useNavigate } from "react-router-dom";
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import StopIcon from '@mui/icons-material/Stop';
+import CheckIcon from '@mui/icons-material/Check';
+import { generateSessionId } from '../../utils/idGenerator';
 
 const SessionFrontCard = ({ openSession }) => {
+    const navigate = useNavigate();
+
+    const startSession = () => {
+        const sessionId = generateSessionId();
+
+        navigate(`/?room=${sessionId}`);
+    }
     return (
         <>
             <h1 className='text-[#a8a5ff] flex w-full items-center justify-center font-bold text-2xl'>
@@ -18,7 +28,7 @@ const SessionFrontCard = ({ openSession }) => {
             </div>
             <div className='flex items-center justify-center '>
                 <button
-                    onClick={() => openSession()}
+                    onClick={startSession}
                     className='bg-[#a8a5ff] min-h-[3rem] py-1 px-6 rounded-lg border-[1px] border-transparent cursor-pointer hover:bg-[#bbb8ff] text-black'
                 >
                     <div className='flex items-center justify-center gap-3'>
@@ -34,7 +44,17 @@ const SessionFrontCard = ({ openSession }) => {
     )
 }
 
-const SessionBackCard = ({ closeSession }) => {
+const SessionBackCard = ({ sessionId }) => {
+    const [isCopyClicked, setIsCopyClicked] = useState(false);
+    const navigate = useNavigate();
+    const handleCopyClick = () => {
+        navigator.clipboard.writeText(`https://excalidraw.com/?room=${sessionId}`);
+        setIsCopyClicked(true);
+
+        setTimeout(() => {
+            setIsCopyClicked(false);
+        },5000)
+    }
     return (
         <>
             <h3 className=' font-semibold text-xl'>
@@ -54,30 +74,40 @@ const SessionBackCard = ({ closeSession }) => {
                 </div>
             </div>
             <div className=''>
-                <div className='font-semibold'>
-                    Link
-                </div>
                 <div className='flex justify-between items-center gap-3'>
-                    <div className='rounded-xl border-[1px] border-white/30 px-4 my-1 flex items-center h-[3rem] bg-[#a8a5ff] bg-opacity-5 w-full cursor-text'>
-                        <input
-                            type="text"
-                            placeholder='Your Name'
-                            value={'https://excalidraw.com/#room=7a7ea1a69a728466bdb6,2XZbHpnfycvOgg_LLzxUIw'}
-                            className='w-full bg-transparent outline-none focus:outline-none text-[1rem] '
-                            disabled={true}
-                        />
-                    </div>
-                    <button
-                        // onClick={() => openSession()}
-                        className='bg-[#a8a5ff] min-h-[3rem] py-1 px-6 rounded-lg border-[1px] border-transparent cursor-pointer hover:bg-[#bbb8ff] text-black h-12 w-[12rem]'
-                    >
-                        <div className='flex items-center justify-center gap-3 text-sm font-semibold'>
-                            <div>
-                                <ContentCopyIcon sx={{ fontSize: 20 }} />
-                            </div>
-                            Copy link
+                    <div className='w-full'>
+                        <div className='font-semibold'>
+                            Link
                         </div>
-                    </button>
+                        <div className='rounded-xl border-[1px] border-white/30 px-4 my-1 flex items-center h-[3rem] bg-[#a8a5ff] bg-opacity-5 w-full'>
+                            <input
+                                type="text"
+                                placeholder='Your Name'
+                                value={`https://excalidraw.com/?room=${sessionId}`}
+                                className='w-full bg-transparent outline-none focus:outline-none text-[1rem] cursor-text'
+                                disabled={true}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <div className={`flex justify-end transition duration-500 ${isCopyClicked ? 'opacity-100' : 'opacity-0'}`}>
+                            <div className='bg-[#cafccc] flex items-center justify-center font-semibold px-2 rounded-lg mb-1 text-[#268039] text-[0.75rem]'>
+                                <CheckIcon sx={{ fontSize: 16 }} />
+                                copied
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleCopyClick}
+                            className='bg-[#a8a5ff] min-h-[3rem] py-1 px-6 rounded-lg border-[1px] border-transparent cursor-pointer hover:bg-[#bbb8ff] text-black h-12 w-[9rem]'
+                        >
+                            <div className='flex items-center justify-center gap-3 text-sm font-semibold'>
+                                <div>
+                                    <ContentCopyIcon sx={{ fontSize: 20 }} />
+                                </div>
+                                Copy link
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -87,7 +117,10 @@ const SessionBackCard = ({ closeSession }) => {
             </div>
 
             <div className='flex justify-center'>
-                <button className='bg-transperent min-h-[3rem] py-1 px-4 rounded-lg border-[1px] border-[#ffa8a5] hover:border-[#ac2b29] transition cursor-pointer text-[#ffa8a5] hover:text-[#ac2b29] h-12  flex justify-center items-center gap-3'>
+                <button
+                    onClick={() => navigate('/')}
+                    className='bg-transperent min-h-[3rem] py-1 px-4 rounded-lg border-[1px] border-[#ffa8a5] hover:border-[#ac2b29] transition cursor-pointer text-[#ffa8a5] hover:text-[#ac2b29] h-12  flex justify-center items-center gap-3'
+                >
                     <div>
                         <StopIcon sx={{ fontSize: 26 }} />
                     </div>
@@ -98,9 +131,8 @@ const SessionBackCard = ({ closeSession }) => {
     )
 }
 
-const Session = ({ closeSessionCard }) => {
+const Session = ({ closeSessionCard, sessionId }) => {
     const cardRef = useRef(null);
-    const [liveSession, setLiveSession] = useState(false);
 
     useEffect(() => {
         const handleOutsideClick = (e) => {
@@ -113,17 +145,17 @@ const Session = ({ closeSessionCard }) => {
             document.removeEventListener("mousedown", handleOutsideClick);
         };
     }, [closeSessionCard]);
-    
+
     return (
         <div className='absolute bg-neutral-900 bg-opacity-10 w-full h-screen flex justify-center items-center'>
             <div
                 ref={cardRef}
                 className='bg-[#232329] flex flex-col gap-8 p-10 relative w-[38rem] rounded-lg border-[1px] border-neutral-600 transition text-white'
             >
-                {!liveSession ?
-                    <SessionFrontCard openSession={() => setLiveSession(true)} />
+                {sessionId === undefined ?
+                    <SessionFrontCard />
                     :
-                    <SessionBackCard closeSession={() => setLiveSession(false)} />
+                    <SessionBackCard sessionId={sessionId} />
                 }
 
                 <button className='text-neutral-300 hover:opacity-50 flex absolute top-5 right-5'

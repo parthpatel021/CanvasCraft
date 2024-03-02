@@ -81,7 +81,6 @@ const drawArrow = (element, ctx) => {
 }
 
 const drawLine = (element, ctx) => {
-    console.log(element);
     let tox = element.points[1].x, toy = element.points[1].y;
     let fromx = element.points[0].x, fromy = element.points[0].y;
 

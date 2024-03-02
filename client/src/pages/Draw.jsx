@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ToolBar from './../components/Draw/ToolBar';
-import createElement from './../utils/createElement';
-import drawElement from '../utils/drawElement';
+import createElement from '../utils/Element/createElement';
+import drawElement from '../utils/Element/drawElement';
 import { useTool } from '../hooks/useTool';
 import Session from '../components/Draw/Session';
-// import io from 'socket.io-client';
-// let socket;
+import updateOneElement from '../utils/Element/updateElement';
+import { useLocation } from 'react-router-dom';
+import queryString from 'query-string';
 
 const Draw = () => {
     const { tool } = useTool();
@@ -18,7 +19,15 @@ const Draw = () => {
     });
     const [elements, setElements] = useState([]);
     const [sessionCard, setSessionCard] = useState(false);
+    
+    const location = useLocation();
+    const [sessionId,setSessionId] = useState(undefined);
 
+    useEffect(() => {
+        const { room } =  queryString.parse(location.search); 
+        setSessionId(room);
+
+    },[setSessionId, location.search])
 
     useEffect(() => {
         const handleMouseMove = (event) => {
@@ -29,7 +38,6 @@ const Draw = () => {
 
         const handleMouseDown = () => {
             if (tool.selectedTool !== 'hand') {
-
                 const newElement = createElement(mouse, tool.selectedTool);
 
                 const elementIdx = elements.length;
@@ -57,47 +65,18 @@ const Draw = () => {
 
     }, [elements.length,  mouse])
 
-    const updateRectangle = () => {
-        const updatedElements = [...elements];
-        const x = elements[mouse.currentElementIdx].x;
-        const y = elements[mouse.currentElementIdx].y;
-
-        updatedElements[mouse.currentElementIdx] = {
-            ...elements[mouse.currentElementIdx],
-            width: mouse.x - x,
-            height: mouse.y - y
-        }
-
-        return updatedElements;
-    }
-
-    const updateLine = () => {
-        const updatedElements = [...elements];
-
-        updatedElements[mouse.currentElementIdx] = {
-            ...elements[mouse.currentElementIdx],
-            points: [
-                elements[mouse.currentElementIdx].points[0],
-                {
-                    x: mouse.x,
-                    y: mouse.y,
-                }
-            ]
-        }
-
-        return updatedElements;
-    }
+    
 
     useEffect(() => {
-        if (mouse.isClicked === true) {
-            let updatedElements;
-
-            if(tool.selectedTool === 'rectangle' || tool.selectedTool === 'ellipse')
-                updatedElements = updateRectangle();
+        const updateElement = () => {
+            const updatedElements = [...elements];
+            updatedElements[mouse.currentElementIdx] = updateOneElement(elements[mouse.currentElementIdx], mouse)
             
-            if(tool.selectedTool === 'line' || tool.selectedTool === 'arrow')
-                updatedElements = updateLine();
+            return updatedElements;
+        }
 
+        if (mouse.isClicked === true) {
+            let updatedElements = updateElement();
             setElements((prev) => [...updatedElements])
         }
     }, [mouse])
@@ -119,10 +98,10 @@ const Draw = () => {
             <button 
                 className='bg-[#a8a5ff] min-h-[2.25rem] px-3 rounded-lg border-[1px] border-transparent cursor-pointer hover:bg-[#bbb8ff] absolute top-4 right-4 text-sm'
                 onClick={() => setSessionCard(true)}
-                >
+            >
                 Share
             </button>
-            {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} /> : null}
+            {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
             
             <canvas ref={canvasRef}>Drawing Canvas</canvas>
         </div>
