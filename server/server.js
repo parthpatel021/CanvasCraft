@@ -21,8 +21,11 @@ const io = new Server(httpServer, {
 
 io.on('connection', (socket) => {
 
-    socket.on('elements', (elements, room) => {
-        socket.to(room).emit('receive-elements', elements);
+    socket.on('createElement', (element, room) => {
+        socket.to(room).emit('createElement', element);
+    });
+    socket.on('updateElement', (element, room) => {
+        socket.to(room).emit('updateElement', element);
     });
 
     socket.on('join', room => {

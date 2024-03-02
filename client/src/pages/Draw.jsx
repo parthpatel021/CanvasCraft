@@ -43,13 +43,7 @@ const Draw = () => {
             })
 
             socket.on('updateElement', element => {
-                setElements((prev) => {
-                    prev.map(e => {
-                        if (e.id === element.id)
-                            return element;
-                        else return e;
-                    });
-                })
+                setElements((prev) => prev.map(e => e.id === element.id ? element : e));
             })
         }
     }, [sessionId, socket])
@@ -63,6 +57,8 @@ const Draw = () => {
     const handleMouseDown = () => {
         if (tool.selectedTool !== 'hand') {
             const newElement = createElement(mouse, tool.selectedTool);
+
+            socket.emit('createElement', newElement, sessionId);
 
             setElements(prev => [...prev, newElement]);
 
@@ -78,17 +74,27 @@ const Draw = () => {
 
     useEffect(() => {
         const updateElement = () => {
-            const updatedElements = elements.map(e => e.id === mouse.currentElementId ? updateOneElement(e, mouse) : e);
+            const updatedElements = elements.map(e => {
+                if(e.id === mouse.currentElementId){ 
+                    const updatedElement = updateOneElement(e, mouse);
+                    
+                    socket.emit('updateElement', updatedElement, sessionId);
+
+                    return updatedElement;
+                } else {
+                    return e;
+                }
+            });
 
             return updatedElements;
         }
 
         if (mouse.isClicked === true) {
             let updatedElements = updateElement();
-            setElements((prev) => [...updatedElements])
+            setElements([...updatedElements])
         }
 
-    }, [mouse.isClicked, mouse, elements])
+    }, [mouse.isClicked, mouse, socket, sessionId])
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -96,9 +102,6 @@ const Draw = () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         const ctx = canvas.getContext('2d');
-
-
-        sessionId && socket && socket.emit('elements', elements, sessionId);
 
         elements.forEach(element => drawElement(element, ctx))
     }, [elements, sessionId, socket]);
