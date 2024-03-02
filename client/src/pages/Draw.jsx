@@ -7,6 +7,7 @@ import Session from '../components/Draw/Session';
 import updateOneElement from '../utils/Element/updateElement';
 import { useLocation } from 'react-router-dom';
 import queryString from 'query-string';
+import { io } from 'socket.io-client';
 
 const Draw = () => {
     const { tool } = useTool();
@@ -15,63 +16,70 @@ const Draw = () => {
         x: undefined,
         y: undefined,
         isClicked: false,
-        currentElementIdx: -1
+        currentElementId: -1
     });
     const [elements, setElements] = useState([]);
     const [sessionCard, setSessionCard] = useState(false);
-    
+
     const location = useLocation();
-    const [sessionId,setSessionId] = useState(undefined);
+    const [sessionId, setSessionId] = useState(undefined);
+    const [socket, setSocket] = useState(undefined);
 
     useEffect(() => {
-        const { room } =  queryString.parse(location.search); 
+        const { room } = queryString.parse(location.search);
         setSessionId(room);
 
-    },[setSessionId, location.search])
+        setSocket(io(process.env.REACT_APP_API));
+
+    }, [setSessionId, location.search])
 
     useEffect(() => {
-        const handleMouseMove = (event) => {
-            setMouse((prev) => {
-                return { ...prev, x: event.x, y: event.y }
+
+        if (socket && sessionId) {
+            socket.emit('join', sessionId);
+
+            socket.on('createElement', element => {
+                setElements((prev) => [...prev, element]);
+            })
+
+            socket.on('updateElement', element => {
+                setElements((prev) => {
+                    prev.map(e => {
+                        if (e.id === element.id)
+                            return element;
+                        else return e;
+                    });
+                })
             })
         }
+    }, [sessionId, socket])
 
-        const handleMouseDown = () => {
-            if (tool.selectedTool !== 'hand') {
-                const newElement = createElement(mouse, tool.selectedTool);
+    const handleMouseMove = (event) => {
+        setMouse((prev) => {
+            return { ...prev, x: event.clientX, y: event.clientY }
+        })
+    }
 
-                const elementIdx = elements.length;
-                setElements(prev => [...prev, newElement]);
+    const handleMouseDown = () => {
+        if (tool.selectedTool !== 'hand') {
+            const newElement = createElement(mouse, tool.selectedTool);
 
-                setMouse((prev) => ({ ...prev, isClicked: true, currentElementIdx: elementIdx }))
-            }
+            setElements(prev => [...prev, newElement]);
+
+            setMouse((prev) => ({ ...prev, isClicked: true, currentElementId: newElement.id }))
         }
+    }
 
-        const handleMouseUp = () => {
-            setMouse((prev) => {
-                return { ...prev, isClicked: false }
-            })
-        }
-
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mouseup', handleMouseUp);
-
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mousedown', handleMouseDown);
-            document.removeEventListener('mouseup', handleMouseUp);
-        }
-
-    }, [elements.length,  mouse])
-
-    
+    const handleMouseUp = () => {
+        setMouse((prev) => {
+            return { ...prev, isClicked: false }
+        })
+    }
 
     useEffect(() => {
         const updateElement = () => {
-            const updatedElements = [...elements];
-            updatedElements[mouse.currentElementIdx] = updateOneElement(elements[mouse.currentElementIdx], mouse)
-            
+            const updatedElements = elements.map(e => e.id === mouse.currentElementId ? updateOneElement(e, mouse) : e);
+
             return updatedElements;
         }
 
@@ -79,7 +87,8 @@ const Draw = () => {
             let updatedElements = updateElement();
             setElements((prev) => [...updatedElements])
         }
-    }, [mouse])
+
+    }, [mouse.isClicked, mouse, elements])
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -88,22 +97,30 @@ const Draw = () => {
         canvas.height = window.innerHeight;
         const ctx = canvas.getContext('2d');
 
+
+        sessionId && socket && socket.emit('elements', elements, sessionId);
+
         elements.forEach(element => drawElement(element, ctx))
-    }, [elements]);
+    }, [elements, sessionId, socket]);
+
 
 
     return (
         <div className={`h-screen dark:bg-neutral-900 bg-white flex justify-center items-center ${tool.cursor}`}>
             <ToolBar />
-            <button 
-                className='bg-[#a8a5ff] min-h-[2.25rem] px-3 rounded-lg border-[1px] border-transparent cursor-pointer hover:bg-[#bbb8ff] absolute top-4 right-4 text-sm'
+            <button
+                className={`${sessionId ? 'bg-[#0fb884]' : 'bg-[#a8a5ff] hover:bg-[#bbb8ff]'} min-h-[2.25rem] px-3 rounded-lg border-[1px] border-transparent cursor-pointer  absolute top-4 right-4 text-sm`}
                 onClick={() => setSessionCard(true)}
             >
                 Share
             </button>
             {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
-            
-            <canvas ref={canvasRef}>Drawing Canvas</canvas>
+
+            <canvas
+                onMouseMove={handleMouseMove}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                ref={canvasRef}>Drawing Canvas</canvas>
         </div>
     )
 }

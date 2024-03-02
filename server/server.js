@@ -7,25 +7,30 @@ import { Server } from "socket.io";
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
-const CLIENTURL = process.env.CLIENTURL;
+const CLIENTURL = 'http://localhost:3000/';
 
 const app = express();
+app.use(cors());
 const httpServer  = http.createServer(app);
 
-app.use(cors());
-
-const io = new Server(httpServer , {
+const io = new Server(httpServer, {
     cors: {
-      origin: CLIENTURL,
-      methods: ["GET", "POST"]
+      origin: '*'
     }
 });
 
 io.on('connection', (socket) => {
-    console.log(socket.id);
+
+    socket.on('elements', (elements, room) => {
+        socket.to(room).emit('receive-elements', elements);
+    });
+
+    socket.on('join', room => {
+        socket.join(room);
+    })
 })
 
 
-httpServer .listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Server has started on PORT ${PORT}`);
 })
