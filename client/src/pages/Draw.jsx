@@ -8,6 +8,7 @@ import updateOneElement from '../utils/Element/updateElement';
 import { useLocation } from 'react-router-dom';
 import queryString from 'query-string';
 import { io } from 'socket.io-client';
+import DrawFooter from '../components/Draw/DrawFooter';
 
 const Draw = () => {
     const { tool } = useTool();
@@ -20,6 +21,11 @@ const Draw = () => {
     });
     const [elements, setElements] = useState([]);
     const [sessionCard, setSessionCard] = useState(false);
+    const [stage, setStage] = useState({
+        scale: 1,
+        x: 0,
+        y: 0,
+    })
 
     const location = useLocation();
     const [sessionId, setSessionId] = useState(undefined);
@@ -50,7 +56,7 @@ const Draw = () => {
 
     const handleMouseMove = (event) => {
         setMouse((prev) => {
-            return { ...prev, x: event.clientX, y: event.clientY }
+            return { ...prev, x: event.clientX/stage.scale, y: event.clientY/stage.scale }
         })
     }
 
@@ -103,10 +109,14 @@ const Draw = () => {
         canvas.height = window.innerHeight;
         const ctx = canvas.getContext('2d');
 
+        ctx.scale(stage.scale, stage.scale);
+
         elements.forEach(element => drawElement(element, ctx))
-    }, [elements, sessionId, socket]);
+    }, [elements, sessionId, socket, stage]);
 
-
+    const handleCanvasScale = (newScale) => {
+        setStage(prev => ({...prev, scale: newScale/100}));
+    }
 
     return (
         <div className={`h-screen dark:bg-neutral-900 bg-white flex justify-center items-center ${tool.cursor}`}>
@@ -119,11 +129,16 @@ const Draw = () => {
             </button>
             {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
 
+            <DrawFooter handleCanvasScale={handleCanvasScale} scale={stage.scale}/>
+
             <canvas
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
-                ref={canvasRef}>Drawing Canvas</canvas>
+                ref={canvasRef}
+            >
+                Drawing Canvas
+            </canvas>
         </div>
     )
 }

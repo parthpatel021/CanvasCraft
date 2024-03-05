@@ -48,7 +48,7 @@ const SessionBackCard = ({ sessionId }) => {
     const [isCopyClicked, setIsCopyClicked] = useState(false);
     const navigate = useNavigate();
     const handleCopyClick = () => {
-        navigator.clipboard.writeText(`https://excalidraw.com/?room=${sessionId}`);
+        navigator.clipboard.writeText(`https://canvascraft.onrender.com/?room=${sessionId}`);
         setIsCopyClicked(true);
 
         setTimeout(() => {
@@ -83,7 +83,7 @@ const SessionBackCard = ({ sessionId }) => {
                             <input
                                 type="text"
                                 placeholder='Your Name'
-                                value={`https://excalidraw.com/?room=${sessionId}`}
+                                value={`https://canvascraft.onrender.com/?room=${sessionId}`}
                                 className='w-full bg-transparent outline-none focus:outline-none text-[1rem] cursor-text'
                                 disabled={true}
                             />
