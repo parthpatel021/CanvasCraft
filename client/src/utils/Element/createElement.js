@@ -64,6 +64,21 @@ const createLine = (mouse, id) => {
     }
 }
 
+const createDrawing = (mouse, id) => {
+    return {
+        id: id,
+        type: 'drawing',
+        strokeWidth: 2,
+        strokeColor: '#e1e1e1',
+        points: [
+            {
+                x: mouse.x,
+                y: mouse.y,
+            }
+        ]
+    }
+}
+
 const createElement = (mouse, selectedTool) => {
     const id = generateElementId();
     switch (selectedTool) {
@@ -78,6 +93,11 @@ const createElement = (mouse, selectedTool) => {
         
         case "line":
             return createLine(mouse, id);
+        
+        case "draw":
+            return createDrawing(mouse, id);
+
+        
     
         default:
             console.log('corresponding selectedTool element creation function is not written');

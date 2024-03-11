@@ -13,8 +13,6 @@ const updateRectangle = (element, mouse) => {
 }
 
 const updateLine = (element, mouse) => {
-    
-
     const updatedElement = {
         ...element,
         points: [
@@ -29,11 +27,22 @@ const updateLine = (element, mouse) => {
     return updatedElement;
 }
 
+const updateDrawing = (element, mouse) => {
+    element.points.push({
+        x: mouse.x,
+        y: mouse.y,
+    })
+    return element;
+
+}
+
 const updateOneElement = (element, mouse) => {
     if (element.type === 'rectangle' || element.type === 'ellipse') 
         return updateRectangle(element, mouse);
     if (element.type === 'arrow' || element.type === 'line') 
         return updateLine(element, mouse);
+    if (element.type === 'drawing') 
+        return updateDrawing(element, mouse);
 }
 
 export default updateOneElement;

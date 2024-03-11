@@ -4,7 +4,7 @@ const ToolContext = createContext(undefined);
 
 function ToolProvider({ children }) {
     const [tool, setTool] = useState({
-        selectedTool: 'hand',
+        selectedTool: 'selection',
         toolLock: false,
         cursor: 'default',
     });

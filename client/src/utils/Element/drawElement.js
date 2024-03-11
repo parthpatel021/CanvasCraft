@@ -87,10 +87,27 @@ const drawLine = (element, ctx) => {
     ctx.beginPath();
     ctx.moveTo(fromx, fromy);
     ctx.lineTo(tox, toy);
+    ctx.lineWidth = element.strokeWidth;
     ctx.strokeStyle = '#e1e1e1';
     ctx.stroke();
     ctx.closePath();
     
+}
+
+const drawDrawing = (element, ctx) => {
+    const points = element.points;
+
+    ctx.beginPath();
+    ctx.lineWidth = element.strokeWidth;
+    ctx.strokeStyle = '#e1e1e1';
+    ctx.moveTo(points[0].x, points[0].y);
+
+    points.forEach(point => {
+        ctx.lineTo(point.x,point.y);
+        ctx.stroke();
+    });
+
+    ctx.closePath();
 }
 
 const drawElement = (element, ctx) => {
@@ -98,6 +115,7 @@ const drawElement = (element, ctx) => {
     if (element.type === 'ellipse') drawEllipse(element, ctx);
     if (element.type === 'arrow') drawArrow(element, ctx);
     if (element.type === 'line') drawLine(element, ctx);
+    if (element.type === 'drawing') drawDrawing(element, ctx);
 }
 
 export default drawElement;

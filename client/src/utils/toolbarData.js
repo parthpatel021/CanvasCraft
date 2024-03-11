@@ -15,6 +15,7 @@ import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import LockIcon from '@mui/icons-material/Lock';
+import { BsCursor, BsCursorFill } from "react-icons/bs";
 
 const toolbarData = [
     {
@@ -23,6 +24,13 @@ const toolbarData = [
         cursor: 'cursor-grab',
         filledIcon: <BackHandIcon sx={{ fontSize: 18 }} />,
         icon: <BackHandOutlinedIcon sx={{ fontSize: 18 }} />,
+    },
+    {
+        name: 'Selection',
+        slug: 'selection',
+        cursor: 'cursor-defsult',
+        filledIcon: <div className='w-[18px] h-[18px]'> <BsCursorFill /> </div>,
+        icon: <div className='w-[18px] h-[18px]'> <BsCursor /> </div>,
         numShortcut: 1,
     },
     {
@@ -45,8 +53,8 @@ const toolbarData = [
         name: 'Arrow',
         slug: 'arrow',
         cursor: 'cursor-crosshair',
-        filledIcon: <TrendingFlatIcon sx={{ fontSize: 18 }}  />,
-       icon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
+        filledIcon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
+        icon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
         numShortcut: 4,
     },
     {
@@ -65,30 +73,30 @@ const toolbarData = [
         icon: <ModeEditOutlineOutlinedIcon sx={{ fontSize: 18 }} />,
         numShortcut: 6,
     },
-    {
-        name: 'Text',
-        slug: 'text',
-        cursor: 'cursor-text',
-        filledIcon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
-        icon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
-        numShortcut: 7,
-    },
-    {
-        name: 'Insert Image',
-        slug: 'image',
-        cursor: 'cursor-default',
-        filledIcon: <InsertPhotoIcon sx={{ fontSize: 18 }} />,
-        icon: <InsertPhotoOutlinedIcon sx={{ fontSize: 18 }} />,
-        numShortcut: 8,
-    },
-    {
-        name: 'Eraser',
-        slug: 'eraser',
-        cursor: 'cursor-default',
-        filledIcon: <AutoFixHighIcon sx={{ fontSize: 18 }} />,
-        icon: <AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />,
-        numShortcut: 9,
-    },
+    // {
+    //     name: 'Text',
+    //     slug: 'text',
+    //     cursor: 'cursor-text',
+    //     filledIcon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
+    //     icon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
+    //     numShortcut: 7,
+    // },
+    // {
+    //     name: 'Insert Image',
+    //     slug: 'image',
+    //     cursor: 'cursor-default',
+    //     filledIcon: <InsertPhotoIcon sx={{ fontSize: 18 }} />,
+    //     icon: <InsertPhotoOutlinedIcon sx={{ fontSize: 18 }} />,
+    //     numShortcut: 8,
+    // },
+    // {
+    //     name: 'Eraser',
+    //     slug: 'eraser',
+    //     cursor: 'cursor-default',
+    //     filledIcon: <AutoFixHighIcon sx={{ fontSize: 18 }} />,
+    //     icon: <AutoFixHighOutlinedIcon sx={{ fontSize: 18 }} />,
+    //     numShortcut: 9,
+    // },
 ]
 
 export default toolbarData;

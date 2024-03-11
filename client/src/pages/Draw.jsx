@@ -11,7 +11,7 @@ import { io } from 'socket.io-client';
 import DrawFooter from '../components/Draw/DrawFooter';
 
 const Draw = () => {
-    const { tool } = useTool();
+    const { tool, setTool } = useTool();
     const canvasRef = useRef(null);
     const [mouse, setMouse] = useState({
         x: undefined,
@@ -25,18 +25,20 @@ const Draw = () => {
         scale: 1,
         x: 0,
         y: 0,
-    })
+    });
 
     const location = useLocation();
     const [sessionId, setSessionId] = useState(undefined);
     const [socket, setSocket] = useState(undefined);
+    // const [enterKey, setEnterKey] = useState(false);
 
     useEffect(() => {
         const { room } = queryString.parse(location.search);
-        setSessionId(room);
-
-        setSocket(io(process.env.REACT_APP_API));
-
+        
+        if(room){
+            setSessionId(room);
+            setSocket(io(process.env.REACT_APP_API));
+        }
     }, [setSessionId, location.search])
 
     useEffect(() => {
@@ -61,10 +63,10 @@ const Draw = () => {
     }
 
     const handleMouseDown = () => {
-        if (tool.selectedTool !== 'hand') {
+        if (tool.selectedTool !== 'hand' && tool.selectedTool !== 'selection') {
             const newElement = createElement(mouse, tool.selectedTool);
 
-            socket.emit('createElement', newElement, sessionId);
+            socket && socket.emit('createElement', newElement, sessionId);
 
             setElements(prev => [...prev, newElement]);
 
@@ -76,6 +78,10 @@ const Draw = () => {
         setMouse((prev) => {
             return { ...prev, isClicked: false }
         })
+
+        if(!tool.toolLock && tool.selectedTool !== 'hand'){
+            setTool((prev) => ({...prev, selectedTool:'selection', cursor: 'cursor-default'}))
+        }
     }
 
     useEffect(() => {
@@ -84,7 +90,7 @@ const Draw = () => {
                 if(e.id === mouse.currentElementId){ 
                     const updatedElement = updateOneElement(e, mouse);
                     
-                    socket.emit('updateElement', updatedElement, sessionId);
+                    socket && socket.emit('updateElement', updatedElement, sessionId);
 
                     return updatedElement;
                 } else {
@@ -112,10 +118,14 @@ const Draw = () => {
         ctx.scale(stage.scale, stage.scale);
 
         elements.forEach(element => drawElement(element, ctx))
-    }, [elements, sessionId, socket, stage]);
+    }, [elements, stage]);
 
     const handleCanvasScale = (newScale) => {
         setStage(prev => ({...prev, scale: newScale/100}));
+    }
+
+    const handleKeyDown = (e) => {
+        console.log(e.keyCode);
     }
 
     return (
@@ -135,6 +145,8 @@ const Draw = () => {
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
+                onKeyDown={handleKeyDown}
+                tabIndex={1000}
                 ref={canvasRef}
             >
                 Drawing Canvas
