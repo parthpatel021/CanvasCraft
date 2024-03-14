@@ -93,10 +93,36 @@ const cursorForPosition = (position) => {
     }
 };
 
+const useHistory = (initalState) => {
+    const [index, setIndex] = useState(0);
+    const [history, setHistory] = useState([initalState]);
+
+    const setState = (action, overWrite = false) => {
+        const newState = typeof action === 'function' ? action(history[index]) : action;
+
+        if(overWrite){
+            const historyCopy = [...history];
+            historyCopy[index] = newState;
+
+            setHistory(historyCopy);
+
+        } else {
+            const updatedState = [...history].slice(0,index+1);
+            setHistory([...updatedState, newState]);
+            setIndex(prev => prev+1);
+        }
+    }
+
+    const undo = () => index > 0 && setIndex(prev => prev-1);
+    const redo = () => index < history.length-1 && setIndex(prev => prev+1);
+
+    return [history[index], setState, undo, redo];
+}
+
 const Draw = () => {
     const { tool, setTool } = useTool();
 
-    const [elements, setElements] = useState([]); 
+    const [elements, setElements, undo, redo] = useHistory([]); 
     const [action, setAction] = useState('none');
     const [selectedElement, setSelectedElement] = useState(null);
     
@@ -141,14 +167,31 @@ const Draw = () => {
         const roughCanvas = rough.canvas(canvas);
 
         elements.forEach(({roughElement}) => roughCanvas.draw(roughElement));
-    }, [elements])
+    }, [elements]);
+
+    useEffect(() => {
+        const undoRedoFunction = event => {
+            if((event.metaKey || event.ctrlKey) && event.keyCode === 90){
+                if(event.shiftKey){ 
+                    redo();
+                } else { 
+                    undo();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', undoRedoFunction);
+        return () => {
+            document.removeEventListener('keydown', undoRedoFunction);
+        }
+    },[undo, redo])
 
     const updateElement = (id, x1, y1, x2, y2, type) => {
         const updateElement = createNewElement(id, x1, y1, x2, y2, type);
         
         const elementCopy = [...elements];
         elementCopy[id] = updateElement;
-        setElements(elementCopy);
+        setElements(elementCopy, true);
     }
 
     // Mouse Handlers
@@ -164,6 +207,8 @@ const Draw = () => {
                 const offsetX = clientX -  element.x1;
                 const offsetY = clientY - element.y1;
                 setSelectedElement({...element, offsetX, offsetY});
+                setElements(prev => prev);
+
                 if(element.position === 'inside'){
                     setAction('move');
                 } else {
@@ -213,11 +258,13 @@ const Draw = () => {
     }
 
     const handleMouseUp = () => {
-        const index = elements.length - 1;
-        if(action === 'draw' || action === 'resize'){
-            const {id, type} = elements[index];
-            const {x1, y1, x2, y2} = adjustElementCoordinates(elements[index]);
-            updateElement(id, x1, y1, x2, y2, type);
+        if(selectedElement){
+            const index = selectedElement.id;
+            if(action === 'draw' || action === 'resize'){
+                const {id, type} = elements[index];
+                const {x1, y1, x2, y2} = adjustElementCoordinates(elements[index]);
+                updateElement(id, x1, y1, x2, y2, type);
+            }
         }
         
         setAction('none');
@@ -261,7 +308,7 @@ const Draw = () => {
             </button>
             {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
 
-            <DrawFooter />
+            <DrawFooter undo={undo} redo={redo} />
 
             <canvas
                 onMouseMove={handleMouseMove}
