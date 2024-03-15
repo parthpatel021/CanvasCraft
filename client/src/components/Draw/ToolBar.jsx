@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import ToolButton from './ToolButton'
 import toolbarData, { lockIconData } from '../../utils/toolbarData';
 import { useTool } from '../../hooks/useTool';

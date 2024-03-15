@@ -65,14 +65,14 @@ const toolbarData = [
         icon: <HorizontalRuleIcon sx={{ fontSize: 18 }} />,
         numShortcut: 5,
     },
-    // {
-    //     name: 'Draw',
-    //     slug: 'draw',
-    //     cursor: 'crosshair',
-    //     filledIcon: <ModeIcon sx={{ fontSize: 18 }} />,
-    //     icon: <ModeEditOutlineOutlinedIcon sx={{ fontSize: 18 }} />,
-    //     numShortcut: 6,
-    // },
+    {
+        name: 'Draw',
+        slug: 'draw',
+        cursor: 'crosshair',
+        filledIcon: <ModeIcon sx={{ fontSize: 18 }} />,
+        icon: <ModeEditOutlineOutlinedIcon sx={{ fontSize: 18 }} />,
+        numShortcut: 6,
+    },
     // {
     //     name: 'Text',
     //     slug: 'text',

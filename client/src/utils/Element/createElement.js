@@ -15,23 +15,25 @@ const createLine = (x1, y1, x2, y2) => {
     return roughElement;
 }
 
-const createNewElement = (id, x1, y1, x2, y2, selectedTool) => {
+const createElement = (id, x1, y1, x2, y2, type) => {
     let roughElement;
-    switch (selectedTool) {
+    switch (type) {
         case "rectangle":
             roughElement = createRectangle(x1, y1, x2, y2);
-        break;
+            return {id, x1, y1, x2, y2, roughElement, type};
         
         case "line":
             roughElement = createLine(x1, y1, x2, y2);
-        break;
+            return {id, x1, y1, x2, y2, roughElement, type};
+
+        case "draw":
+            return {id, type, points:[{x: x1, y: y1}]};
 
         default:
-            console.log('corresponding selectedTool element creation function is not written');
+            throw new Error(`Type not recognised: ${type}`);
     }
     
 
-    return {id, x1, y1, x2, y2, roughElement, type:selectedTool};
 }
 
-export default createNewElement; 
+export default createElement; 
