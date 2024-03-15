@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import queryString from 'query-string';
 import { io } from 'socket.io-client';
@@ -53,8 +53,11 @@ const isWithinElement = (x, y, element) => {
 
                 return onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 10) != null;
             });
-
             return betweenAnyPoint ? 'inside' : null;
+        }
+        case 'text': {
+
+            return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
         }
 
         default: 
@@ -142,6 +145,7 @@ const Draw = () => {
     const [elements, setElements, undo, redo] = useHistory([]);
     const [action, setAction] = useState('none');
     const [selectedElement, setSelectedElement] = useState(null);
+    const textAreaRef = useRef();
 
     const location = useLocation();
     const [sessionCard, setSessionCard] = useState(false);
@@ -172,7 +176,18 @@ const Draw = () => {
                 setElements((prev) => prev.map(e => e.id === element.id ? element : e));
             })
         }
-    }, [sessionId, socket])
+    }, [sessionId, socket]);
+
+    // Textarea focus
+    useEffect(() => {
+        const textArea = textAreaRef.current;
+        if(action === 'write'){  
+            setTimeout(() => {
+                textArea.focus();
+                textArea.value = selectedElement.text;
+            }, 0);
+        }    
+    }, [action, selectedElement])
 
     // Canvas 
     useLayoutEffect(() => {
@@ -183,8 +198,11 @@ const Draw = () => {
 
         const roughCanvas = rough.canvas(canvas);
 
-        elements.forEach(element => drawElement(roughCanvas, ctx, element));;
-    }, [elements]);
+        elements.forEach(element => {
+            if(action === 'write' && selectedElement.id === element.id) return;
+            drawElement(roughCanvas, ctx, element);
+        })
+    }, [action, elements, selectedElement]);
 
     // KeyDown 
     useEffect(() => {
@@ -204,7 +222,7 @@ const Draw = () => {
         }
     }, [undo, redo])
 
-    const updateElement = (id, x1, y1, x2, y2, type) => {
+    const updateElement = (id, x1, y1, x2, y2, type, options) => {
         const elementCopy = [...elements];
 
         switch (type) {
@@ -216,6 +234,18 @@ const Draw = () => {
                 elementCopy[id].points = [...elementCopy[id].points, { x:x2, y:y2}];
                 break;
 
+            case 'text':
+                const textwidth = document.
+                    getElementById('canvas').
+                    getContext('2d').
+                    measureText(options.text).width;
+                const textHight = 24;
+                elementCopy[id] = {
+                    ...createElement(id, x1, y1, x1+textwidth, y1+textHight, type),
+                    text: options.text
+                }
+                break;
+
             default:
                 throw new Error(`Type not Recognised: ${type}`);
         }
@@ -224,8 +254,9 @@ const Draw = () => {
 
     // Mouse Handlers
     const handleMouseDown = (event) => {
-        const { clientX, clientY } = event;
+        if(action === 'write') return;
 
+        const { clientX, clientY } = event;
         if (tool.selectedTool === 'hand') return;
 
         if (tool.selectedTool === 'selection') {
@@ -253,7 +284,9 @@ const Draw = () => {
             const id = elements.length;
             const newElement = createElement(id, clientX, clientY, clientX, clientY, tool.selectedTool);
             setElements(prev => [...prev, newElement]);
-            setAction('draw');
+            setSelectedElement(newElement);
+
+            setAction(tool.selectedTool==='text' ? 'write' : 'draw');
         }
     }
 
@@ -293,9 +326,9 @@ const Draw = () => {
                 const height = y2 - y1;
                 const newX1 = clientX - offsetX;
                 const newY1 = clientY - offsetY;
-                updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type);
+                const options = type === 'text' ? {text: selectedElement.text} : {};
+                updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type, options);
             }
-
         } else if (action === 'resize') {
             const { id, type, position, ...coordinates } = selectedElement;
             const { x1, y1, x2, y2 } = resizedCoordinates(clientX, clientY, position, coordinates);
@@ -304,8 +337,19 @@ const Draw = () => {
         }
     }
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (event) => {
+        const { clientX, clientY } = event;
         if (selectedElement) {
+
+            if(
+                selectedElement.type === 'text' && 
+                clientX - selectedElement.offsetX === selectedElement.x1 &&
+                clientY - selectedElement.offsetY === selectedElement.y1
+            ) {
+                setAction('write');
+                return;
+            }
+
             const index = selectedElement.id;
             const { id, type } = elements[index];
             if ((action === 'draw' || action === 'resize') && adjustmentRequires(type)) {
@@ -313,6 +357,8 @@ const Draw = () => {
                 updateElement(id, x1, y1, x2, y2, type);
             }
         }
+
+        if(action === 'write') return;
 
         setAction('none');
         setSelectedElement(null);
@@ -342,7 +388,13 @@ const Draw = () => {
         }
     }
 
+    const handleBlur = (event) => {
+        const {id, x1, y1, type} = selectedElement;
+        setAction('none');
+        setSelectedElement(null);
 
+        updateElement(id, x1, y1, null, null, type, {text: event.target.value});
+    }
 
     return (
         <div className={`h-screen dark:bg-neutral-900 bg-white flex justify-center items-center}`}>
@@ -357,6 +409,28 @@ const Draw = () => {
 
             <DrawFooter undo={undo} redo={redo} />
 
+            {action === 'write' ? (
+                <textarea 
+                    ref = {textAreaRef}
+                    onBlur={handleBlur}
+                    className='rounded-md px-1 text-white' 
+                    style={{
+                        position: "fixed",
+                        top: selectedElement.y1 - 5,
+                        left: selectedElement.x1,
+                        font: "24px serif",
+                        margin: 0,
+                        padding: 0,
+                        border: 0,
+                        outline: 0,
+                        resize: "auto",
+                        overflow: "hidden",
+                        whiteSpace: "pre",
+                        background: "transparent",
+                        zIndex: 2,
+                    }}
+                />
+            ) : null}
             <canvas
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}

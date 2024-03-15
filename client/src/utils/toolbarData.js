@@ -73,14 +73,14 @@ const toolbarData = [
         icon: <ModeEditOutlineOutlinedIcon sx={{ fontSize: 18 }} />,
         numShortcut: 6,
     },
-    // {
-    //     name: 'Text',
-    //     slug: 'text',
-    //     cursor: 'text',
-    //     filledIcon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
-    //     icon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
-    //     numShortcut: 7,
-    // },
+    {
+        name: 'Text',
+        slug: 'text',
+        cursor: 'text',
+        filledIcon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
+        icon: <TextFieldsIcon sx={{ fontSize: 18 }} />,
+        numShortcut: 7,
+    },
     // {
     //     name: 'Insert Image',
     //     slug: 'image',

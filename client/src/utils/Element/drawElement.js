@@ -5,7 +5,7 @@ const drawElement = (roughCanvas, ctx, element) => {
         case 'rectangle':
         case 'line':
             roughCanvas.draw(element.roughElement);
-            break;
+        break;
 
         case 'draw':
             const pathData = getPathData(element.points, {
@@ -14,8 +14,14 @@ const drawElement = (roughCanvas, ctx, element) => {
             });
             ctx.fillStyle = '#eee';
             ctx.fill(new Path2D(pathData));
+        break;
 
-            break;
+        case 'text':    
+            ctx.textBaseline = 'top';
+            ctx.font = "24px serif";
+            ctx.fillStyle = '#eee';
+            ctx.fillText(element.text, element.x1, element.y1);
+        break;
 
         default:
             throw new Error(`Type not Recognised: ${element.type}`);
