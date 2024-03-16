@@ -18,13 +18,13 @@ import LockIcon from '@mui/icons-material/Lock';
 import { BsCursor, BsCursorFill } from "react-icons/bs";
 
 const toolbarData = [
-    // {
-    //     name: 'Hand (Panning Tool)',
-    //     slug: 'hand',
-    //     cursor: 'grab',
-    //     filledIcon: <BackHandIcon sx={{ fontSize: 18 }} />,
-    //     icon: <BackHandOutlinedIcon sx={{ fontSize: 18 }} />,
-    // },
+    {
+        name: 'Hand (Panning Tool)',
+        slug: 'hand',
+        cursor: 'grab',
+        filledIcon: <BackHandIcon sx={{ fontSize: 18 }} />,
+        icon: <BackHandOutlinedIcon sx={{ fontSize: 18 }} />,
+    },
     {
         name: 'Selection',
         slug: 'selection',

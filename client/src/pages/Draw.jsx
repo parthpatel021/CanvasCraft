@@ -48,8 +48,8 @@ const isWithinElement = (x, y, element) => {
         }
         case 'draw': {
             const betweenAnyPoint = element.points.some((point, index) => {
-                const nextPoint = element.points[index+1];
-                if(!nextPoint) return false;
+                const nextPoint = element.points[index + 1];
+                if (!nextPoint) return false;
 
                 return onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 10) != null;
             });
@@ -60,7 +60,7 @@ const isWithinElement = (x, y, element) => {
             return x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
         }
 
-        default: 
+        default:
             throw new Error(`Type not Recognised: ${type}`);
     }
 }
@@ -137,6 +137,35 @@ const useHistory = (initalState) => {
     return [history[index], setState, undo, redo];
 }
 
+const usePressedKey = () => {
+    const [pressedKeys, setPressedKeys] = useState(new Set());
+
+    useEffect(() => {
+
+        const handleKeyDown = event => {
+            setPressedKeys(prev => new Set(prev).add(event.key));
+        }
+
+        const handleKeyUp = event => {
+            setPressedKeys(prev => {
+                const updatedKeys = new Set(prev);
+                updatedKeys.delete(event.key);
+                return updatedKeys;
+            })
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        }
+    }, []);
+
+    return pressedKeys;
+}
+
 const adjustmentRequires = (type) => ['rectangle', 'line'].includes(type);
 
 const Draw = () => {
@@ -145,7 +174,10 @@ const Draw = () => {
     const [elements, setElements, undo, redo] = useHistory([]);
     const [action, setAction] = useState('none');
     const [selectedElement, setSelectedElement] = useState(null);
+    const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+    const [startPanMousePosition, setStartPanMousePosition] = useState({ x: 0, y: 0 });
     const textAreaRef = useRef();
+    const pressedKeys = usePressedKey();
 
     const location = useLocation();
     const [sessionCard, setSessionCard] = useState(false);
@@ -176,33 +208,36 @@ const Draw = () => {
                 setElements((prev) => prev.map(e => e.id === element.id ? element : e));
             })
         }
-    }, [sessionId, socket]);
+    }, [sessionId, setElements, socket]);
 
     // Textarea focus
     useEffect(() => {
         const textArea = textAreaRef.current;
-        if(action === 'write'){  
+        if (action === 'write') {
             setTimeout(() => {
                 textArea.focus();
                 textArea.value = selectedElement.text;
             }, 0);
-        }    
+        }
     }, [action, selectedElement])
 
     // Canvas 
     useLayoutEffect(() => {
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const roughCanvas = rough.canvas(canvas);
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const roughCanvas = rough.canvas(canvas);
+        ctx.save();
+        ctx.translate(panOffset.x, panOffset.y);
 
         elements.forEach(element => {
-            if(action === 'write' && selectedElement.id === element.id) return;
+            if (action === 'write' && selectedElement.id === element.id) return;
             drawElement(roughCanvas, ctx, element);
         })
-    }, [action, elements, selectedElement]);
+        ctx.restore();
+    }, [action, elements, selectedElement, panOffset]);
 
     // KeyDown 
     useEffect(() => {
@@ -222,6 +257,22 @@ const Draw = () => {
         }
     }, [undo, redo])
 
+    // Mouse wheel 
+    useEffect(() => {
+        const panFunction = event => {
+            setPanOffset(prevState => ({
+                x: prevState.x - event.deltaX,
+                y: prevState.y - event.deltaY,
+            }));
+        };
+
+        document.addEventListener("wheel", panFunction);
+        return () => {
+            document.removeEventListener("wheel", panFunction);
+        };
+    }, []);
+
+
     const updateElement = (id, x1, y1, x2, y2, type, options) => {
         const elementCopy = [...elements];
 
@@ -231,7 +282,7 @@ const Draw = () => {
                 elementCopy[id] = createElement(id, x1, y1, x2, y2, type);
                 break;
             case 'draw':
-                elementCopy[id].points = [...elementCopy[id].points, { x:x2, y:y2}];
+                elementCopy[id].points = [...elementCopy[id].points, { x: x2, y: y2 }];
                 break;
 
             case 'text':
@@ -241,7 +292,7 @@ const Draw = () => {
                     measureText(options.text).width;
                 const textHight = 24;
                 elementCopy[id] = {
-                    ...createElement(id, x1, y1, x1+textwidth, y1+textHight, type),
+                    ...createElement(id, x1, y1, x1 + textwidth, y1 + textHight, type),
                     text: options.text
                 }
                 break;
@@ -252,18 +303,30 @@ const Draw = () => {
         setElements(elementCopy, true);
     }
 
+    const getMouseCoordinates = event => {
+        const clientX = event.clientX - panOffset.x;
+        const clientY = event.clientY - panOffset.y;
+
+        return { clientX, clientY };
+    }
+
     // Mouse Handlers
     const handleMouseDown = (event) => {
-        if(action === 'write') return;
+        if (action === 'write') return;
 
-        const { clientX, clientY } = event;
-        if (tool.selectedTool === 'hand') return;
+        const { clientX, clientY } = getMouseCoordinates(event);
+
+        if (tool.selectedTool === 'hand' || event.button === 1 || pressedKeys.has(" ")) {
+            setAction('pan');
+            setStartPanMousePosition({ x: clientX, y: clientY });
+            return;
+        }
 
         if (tool.selectedTool === 'selection') {
             const element = getElementAtPosition(clientX, clientY, elements);
 
             if (element) {
-                if(element.type === 'draw'){
+                if (element.type === 'draw') {
                     const xOffsets = element.points.map(point => clientX - point.x);
                     const yOffsets = element.points.map(point => clientY - point.y);
                     setSelectedElement({ ...element, xOffsets, yOffsets });
@@ -286,14 +349,25 @@ const Draw = () => {
             setElements(prev => [...prev, newElement]);
             setSelectedElement(newElement);
 
-            setAction(tool.selectedTool==='text' ? 'write' : 'draw');
+            setAction(tool.selectedTool === 'text' ? 'write' : 'draw');
         }
     }
 
     const handleMouseMove = (event) => {
-        const { clientX, clientY } = event;
+        const { clientX, clientY } = getMouseCoordinates(event);
 
         event.target.style.cursor = tool.cursor;
+        if (action === 'pan') {
+            event.target.style.cursor = 'hand';
+            const deltaX = clientX - startPanMousePosition.x;
+            const deltaY = clientY - startPanMousePosition.y;
+            setPanOffset({
+                x: panOffset.x + deltaX,
+                y: panOffset.y + deltaY,
+            });
+            return;
+        }
+
         if (tool.selectedTool === 'selection') {
             const element = getElementAtPosition(clientX, clientY, elements);
             if (element) {
@@ -307,7 +381,7 @@ const Draw = () => {
             updateElement(index, x1, y1, clientX, clientY, tool.selectedTool);
 
         } else if (action === 'move') {
-            if(selectedElement.type === 'draw'){
+            if (selectedElement.type === 'draw') {
                 const newPoints = selectedElement.points.map((_, index) => ({
                     x: clientX - selectedElement.xOffsets[index],
                     y: clientY - selectedElement.yOffsets[index]
@@ -319,14 +393,14 @@ const Draw = () => {
                     ...elementCopy[selectedElement.id],
                     points: newPoints,
                 }
-                    setElements(elementCopy, true);
+                setElements(elementCopy, true);
             } else {
                 const { id, x1, y1, x2, y2, type, offsetX, offsetY } = selectedElement;
                 const width = x2 - x1;
                 const height = y2 - y1;
                 const newX1 = clientX - offsetX;
                 const newY1 = clientY - offsetY;
-                const options = type === 'text' ? {text: selectedElement.text} : {};
+                const options = type === 'text' ? { text: selectedElement.text } : {};
                 updateElement(id, newX1, newY1, newX1 + width, newY1 + height, type, options);
             }
         } else if (action === 'resize') {
@@ -338,11 +412,11 @@ const Draw = () => {
     }
 
     const handleMouseUp = (event) => {
-        const { clientX, clientY } = event;
+        const { clientX, clientY } = getMouseCoordinates(event);
         if (selectedElement) {
 
-            if(
-                selectedElement.type === 'text' && 
+            if (
+                selectedElement.type === 'text' &&
                 clientX - selectedElement.offsetX === selectedElement.x1 &&
                 clientY - selectedElement.offsetY === selectedElement.y1
             ) {
@@ -358,13 +432,13 @@ const Draw = () => {
             }
         }
 
-        if(action === 'write') return;
+        if (action === 'write') return;
 
         setAction('none');
         setSelectedElement(null);
 
         // Tool reset
-        !tool.toolLock && setTool({ selectedTool: 'selection', toolLock: false, cursor: 'default', });
+        (!tool.toolLock && (tool.selectedTool !== 'hand')) && setTool({ selectedTool: 'selection', toolLock: false, cursor: 'default', });
     }
 
     const resizedCoordinates = (clientX, clientY, position, coordinates) => {
@@ -389,11 +463,11 @@ const Draw = () => {
     }
 
     const handleBlur = (event) => {
-        const {id, x1, y1, type} = selectedElement;
+        const { id, x1, y1, type } = selectedElement;
         setAction('none');
         setSelectedElement(null);
 
-        updateElement(id, x1, y1, null, null, type, {text: event.target.value});
+        updateElement(id, x1, y1, null, null, type, { text: event.target.value });
     }
 
     return (
@@ -410,14 +484,14 @@ const Draw = () => {
             <DrawFooter undo={undo} redo={redo} />
 
             {action === 'write' ? (
-                <textarea 
-                    ref = {textAreaRef}
+                <textarea
+                    ref={textAreaRef}
                     onBlur={handleBlur}
-                    className='rounded-md px-1 text-white' 
+                    className='rounded-md px-1 text-white'
                     style={{
                         position: "fixed",
-                        top: selectedElement.y1 - 5,
-                        left: selectedElement.x1,
+                        top: selectedElement.y1 - 5 + panOffset.y,
+                        left: selectedElement.x1 + panOffset.x,
                         font: "24px serif",
                         margin: 0,
                         padding: 0,
