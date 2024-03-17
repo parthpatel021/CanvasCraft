@@ -1,6 +1,6 @@
 import React from 'react'
 import ToolButton from './ToolButton'
-import toolbarData, { lockIconData } from '../../utils/toolbarData';
+import toolbarData, { lockIconData } from '../../utils/Data/toolbarData';
 import { useTool } from '../../hooks/useTool';
 
 const ToolBar = () => {

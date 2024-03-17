@@ -1,6 +1,6 @@
 import React from 'react';
 import ToolButton from './ToolButton';
-import pannelIconsData, { FooterHoverButtonIcon } from '../../utils/footerPannelIconData';
+import pannelIconsData, { FooterHoverButtonIcon } from '../../utils/Data/footerPannelIconData';
 
 const DrawFooter = ({ scale, onZoom, undo, redo }) => {
     const zoomResetIcon = <FooterHoverButtonIcon icon={new Intl.NumberFormat("en-GB", {style: 'percent'}).format(scale)}  name='Reset Zoom'/>;
