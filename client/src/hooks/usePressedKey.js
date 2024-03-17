@@ -6,7 +6,8 @@ const usePressedKey = () => {
     useEffect(() => {
 
         const handleKeyDown = event => {
-            event.preventDefault();
+            if((event.metaKey || event.ctrlKey) && (event.key === '=' || event.key === '-'))
+                event.preventDefault();
             setPressedKeys(prev => new Set(prev).add(event.key));
         }
 
