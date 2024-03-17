@@ -3,7 +3,7 @@ import AddIcon from '@mui/icons-material/Add';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 
-const FooterHoverButtonIcon = ({icon, name, size}) => {
+export const FooterHoverButtonIcon = ({icon, name, size}) => {
     return <>
         <div className='text-sm peer'>
             {icon}
@@ -26,12 +26,6 @@ const pannelIconsData = {
         slug: 'zoomOut',
         cursor: 'cursor-pointer',
         icon: <RemoveIcon sx={{ fontSize: 18 }} />,
-    },
-    zoomReset: {
-        name: 'Reset Zoom',
-        slug: 'resetZoom',
-        cursor: 'cursor-pointer',
-        icon: <FooterHoverButtonIcon icon={100 + '%'} name='Reset Zoom'/>
     },
     undo: {
         name: 'Undo',

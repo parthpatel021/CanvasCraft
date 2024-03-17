@@ -143,6 +143,7 @@ const usePressedKey = () => {
     useEffect(() => {
 
         const handleKeyDown = event => {
+            event.preventDefault();
             setPressedKeys(prev => new Set(prev).add(event.key));
         }
 
@@ -176,6 +177,8 @@ const Draw = () => {
     const [selectedElement, setSelectedElement] = useState(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [startPanMousePosition, setStartPanMousePosition] = useState({ x: 0, y: 0 });
+    const [scale, setScale] = useState(1);
+    const [scaleOffset, setScaleOffset] = useState({x: 0, y: 0});
     const textAreaRef = useRef();
     const pressedKeys = usePressedKey();
 
@@ -229,15 +232,24 @@ const Draw = () => {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        
+        const scaleWidth = canvas.width * scale;
+        const scaleHeight = canvas.height * scale;
+        const scaleOffSetX = (scaleWidth - canvas.width) / 2;
+        const scaleOffSetY = (scaleHeight - canvas.height) / 2;
+        setScaleOffset({ x: scaleOffSetX, y: scaleOffSetY});
+        
+        
         ctx.save();
-        ctx.translate(panOffset.x, panOffset.y);
+        ctx.translate(panOffset.x * scale - scaleOffSetX, panOffset.y * scale - scaleOffSetY);
+        ctx.scale(scale,scale);
 
         elements.forEach(element => {
             if (action === 'write' && selectedElement.id === element.id) return;
             drawElement(roughCanvas, ctx, element);
         })
         ctx.restore();
-    }, [action, elements, selectedElement, panOffset]);
+    }, [action, elements, selectedElement, panOffset, scale]);
 
     // KeyDown 
     useEffect(() => {
@@ -259,18 +271,27 @@ const Draw = () => {
 
     // Mouse wheel 
     useEffect(() => {
-        const panFunction = event => {
-            setPanOffset(prevState => ({
+        const panOrZoomFunction = event => {
+            if(pressedKeys.has('Meta') || pressedKeys.has('Control')){ 
+                event.preventDefault();
+                onZoom(event.deltaY * -0.01);
+            }
+            else setPanOffset(prevState => ({
                 x: prevState.x - event.deltaX,
                 y: prevState.y - event.deltaY,
             }));
         };
 
-        document.addEventListener("wheel", panFunction);
+        if(pressedKeys.has('Meta') || pressedKeys.has('Control')){ 
+            if(pressedKeys.has('=')) onZoom(0.1);
+            if(pressedKeys.has('-')) onZoom(-0.1);
+        }
+
+        document.addEventListener("wheel", panOrZoomFunction, {passive: false});
         return () => {
-            document.removeEventListener("wheel", panFunction);
+            document.removeEventListener("wheel", panOrZoomFunction, {passive: false});
         };
-    }, []);
+    }, [pressedKeys]);
 
 
     const updateElement = (id, x1, y1, x2, y2, type, options) => {
@@ -286,13 +307,13 @@ const Draw = () => {
                 break;
 
             case 'text':
-                const textwidth = document.
-                    getElementById('canvas').
-                    getContext('2d').
-                    measureText(options.text).width;
-                const textHight = 24;
+                const textwidth = document
+                    .getElementById("canvas")
+                    .getContext("2d")
+                    .measureText(options.text).width;
+                const textHeight = 24;
                 elementCopy[id] = {
-                    ...createElement(id, x1, y1, x1 + textwidth, y1 + textHight, type),
+                    ...createElement(id, x1, y1, x1 + textwidth*2.25, y1 + textHeight, type),
                     text: options.text
                 }
                 break;
@@ -304,8 +325,8 @@ const Draw = () => {
     }
 
     const getMouseCoordinates = event => {
-        const clientX = event.clientX - panOffset.x;
-        const clientY = event.clientY - panOffset.y;
+        const clientX = (event.clientX - panOffset.x * scale + scaleOffset.x) / scale;
+        const clientY = (event.clientY - panOffset.y * scale + scaleOffset.y) / scale;
 
         return { clientX, clientY };
     }
@@ -470,6 +491,10 @@ const Draw = () => {
         updateElement(id, x1, y1, null, null, type, { text: event.target.value });
     }
 
+    const onZoom = (delta) => {
+        setScale(prev => delta ? Math.min(Math.max(prev + delta, 0.1), 20): 1);
+    }
+
     return (
         <div className={`h-screen dark:bg-neutral-900 bg-white flex justify-center items-center}`}>
             <ToolBar />
@@ -481,7 +506,7 @@ const Draw = () => {
             </button>
             {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
 
-            <DrawFooter undo={undo} redo={redo} />
+            <DrawFooter scale={scale} onZoom={onZoom} undo={undo} redo={redo} />
 
             {action === 'write' ? (
                 <textarea
@@ -490,9 +515,9 @@ const Draw = () => {
                     className='rounded-md px-1 text-white'
                     style={{
                         position: "fixed",
-                        top: selectedElement.y1 - 5 + panOffset.y,
-                        left: selectedElement.x1 + panOffset.x,
-                        font: "24px serif",
+                        top: (selectedElement.y1 - 5) * scale + panOffset.y * scale - scaleOffset.y,
+                        left: (selectedElement.x1) * scale + panOffset.x * scale - scaleOffset.x,
+                        font: `${24 * scale}px serif`,
                         margin: 0,
                         padding: 0,
                         border: 0,
