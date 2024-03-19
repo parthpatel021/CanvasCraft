@@ -41,14 +41,14 @@ const toolbarData = [
         icon: <CropSquareRoundedIcon sx={{ fontSize: 18 }} />,
         numShortcut: 2,
     },
-    // {
-    //     name: 'Ellipse',
-    //     slug: 'ellipse',
-    //     cursor: 'crosshair',
-    //     filledIcon: <CircleIcon sx={{ fontSize: 18 }} />,
-    //     icon: <CircleOutlinedIcon sx={{ fontSize: 18 }} />,
-    //     numShortcut: 3,
-    // },
+    {
+        name: 'Ellipse',
+        slug: 'ellipse',
+        cursor: 'crosshair',
+        filledIcon: <CircleIcon sx={{ fontSize: 18 }} />,
+        icon: <CircleOutlinedIcon sx={{ fontSize: 18 }} />,
+        numShortcut: 3,
+    },
     // {
     //     name: 'Arrow',
     //     slug: 'arrow',

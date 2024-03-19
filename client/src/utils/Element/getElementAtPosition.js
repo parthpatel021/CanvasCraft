@@ -25,6 +25,16 @@ const isWithinElement = (x, y, element) => {
 
             return topLeft || topRight || bottomLeft || bottomRight || inside;
         }
+
+        case 'ellipse': {
+            const topLeft = nearPoint(x, y, x1, y1, 'tl');
+            const topRight = nearPoint(x, y, x2, y1, 'tr');
+            const bottomLeft = nearPoint(x, y, x1, y2, 'bl');
+            const bottomRight = nearPoint(x, y, x2, y2, 'br');
+            const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? 'inside' : null;
+
+            return topLeft || topRight || bottomLeft || bottomRight || inside;
+        }
         case 'line': {
             const on = onLine(x1, y1, x2, y2, x, y);
 

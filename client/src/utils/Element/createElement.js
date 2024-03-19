@@ -8,6 +8,16 @@ const createRectangle = (x1, y1, x2, y2) => {
     return roughElement;
 }
 
+const createEllipse = (x1, y1, x2, y2) => {
+    const centerX = (x1+x2)/2;
+    const centerY = (y1+y2)/2;
+    const roughElement = generator.ellipse(centerX, centerY, x2-x1, y2-y1);
+    roughElement.options.stroke = '#eee';
+    roughElement.options.strokeWidth = 2;
+    roughElement.options.roughness = 0.01;
+    return roughElement;
+}
+
 const createLine = (x1, y1, x2, y2) => {
     const roughElement = generator.line(x1, y1, x2, y2);
     roughElement.options.stroke = '#eee';
@@ -20,6 +30,10 @@ const createElement = (id, x1, y1, x2, y2, type) => {
     switch (type) {
         case "rectangle":
             roughElement = createRectangle(x1, y1, x2, y2);
+            return {id, x1, y1, x2, y2, roughElement, type};
+
+        case "ellipse":
+            roughElement = createEllipse(x1, y1, x2, y2);
             return {id, x1, y1, x2, y2, roughElement, type};
         
         case "line":

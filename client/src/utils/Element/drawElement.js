@@ -4,6 +4,7 @@ const drawElement = (roughCanvas, ctx, element) => {
     switch (element.type) {
         case 'rectangle':
         case 'line':
+        case 'ellipse':
             roughCanvas.draw(element.roughElement);
         break;
 

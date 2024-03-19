@@ -163,6 +163,7 @@ const Draw = () => {
         switch (type) {
             case 'rectangle':
             case 'line':
+            case 'ellipse':
                 elementCopy[id] = createElement(id, x1, y1, x2, y2, type);
                 break;
             case 'draw':
