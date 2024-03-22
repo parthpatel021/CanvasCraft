@@ -16,9 +16,11 @@ const useHistory = (initalState) => {
         } else {
             const updatedState = [...history].slice(0, index + 1);
             setHistory([...updatedState, newState]);
-            setIndex(prev => prev + 1);
+            setIndex(index + 1);
         }
     }
+
+    console.log(history[index]);
 
     const undo = () => index > 0 && setIndex(prev => prev - 1);
     const redo = () => index < history.length - 1 && setIndex(prev => prev + 1);

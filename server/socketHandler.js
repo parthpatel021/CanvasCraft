@@ -15,6 +15,9 @@ export default function socketHandler(httpServer){
         socket.on('updateElement', (element, room) => {
             socket.to(room).emit('updateElement', element);
         });
+        socket.on('update', (element, room) => {
+            socket.to(room).emit('update', element);
+        });
     
         socket.on('join', room => {
             socket.join(room);

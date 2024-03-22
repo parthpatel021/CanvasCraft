@@ -64,8 +64,8 @@ const isWithinElement = (x, y, element) => {
 
 const getElementAtPosition = (x, y, elements) => {
     return elements
-        .map(element => ({ ...element, position: isWithinElement(x, y, element) }))
-        .find(element => element.position !== null);
+        ?.map(element => ({ ...element, position: isWithinElement(x, y, element) }))
+        ?.find(element => element.position !== null);
 }
 
 export default getElementAtPosition;

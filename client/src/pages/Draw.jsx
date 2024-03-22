@@ -47,8 +47,8 @@ const Draw = () => {
 
     const location = useLocation();
     const [sessionCard, setSessionCard] = useState(false);
-    const [sessionId, setSessionId] = useState(undefined);
-    const [socket, setSocket] = useState(undefined);
+    const [sessionId, setSessionId] = useState(null);
+    const [socket, setSocket] = useState(null);
 
     // Session Id
     useEffect(() => {
@@ -57,6 +57,9 @@ const Draw = () => {
         if (room) {
             setSessionId(room);
             setSocket(io(process.env.REACT_APP_API));
+        } else {
+            setSessionId(null);
+            setSocket(null);
         }
     }, [setSessionId, location.search])
 
@@ -71,10 +74,31 @@ const Draw = () => {
             })
 
             socket.on('updateElement', element => {
-                setElements((prev) => prev.map(e => e.id === element.id ? element : e));
+                setElements((prev) => prev?.map(e => e.id === element.id ? element : e));
+            });
+
+            socket.on('update', element => {
+                let elemenetIndex = -1;
+
+                let elementsCopy = elements?.map((e,index) => {
+                    if(e.id === element.id ){
+                        elemenetIndex = index; 
+                        return element;
+                    } else return e;
+                });
+
+                if(elemenetIndex === -1){
+                    elementsCopy.push(element);
+                } else {
+                    elementsCopy[elemenetIndex] = element;
+                } 
+
+                
+                setElements(elementsCopy);
+                console.log(elements);
             })
         }
-    }, [sessionId, setElements, socket]);
+    }, [elements,   sessionId, setElements, socket]);
 
     // Textarea focus
     useEffect(() => {
@@ -107,7 +131,7 @@ const Draw = () => {
         ctx.translate(panOffset.x * scale - scaleOffSetX, panOffset.y * scale - scaleOffSetY);
         ctx.scale(scale,scale);
 
-        elements.forEach(element => {
+        elements?.forEach(element => {
             if (action === 'write' && selectedElement.id === element.id) return;
             drawElement(roughCanvas, ctx, element);
         })
@@ -158,16 +182,16 @@ const Draw = () => {
 
 
     const updateElement = (id, x1, y1, x2, y2, type, options) => {
-        const elementCopy = [...elements];
+        const elementsCopy = [...elements];
 
         switch (type) {
             case 'rectangle':
             case 'line':
             case 'ellipse':
-                elementCopy[id] = createElement(id, x1, y1, x2, y2, type);
+                elementsCopy[id] = createElement(id, x1, y1, x2, y2, type);
                 break;
             case 'draw':
-                elementCopy[id].points = [...elementCopy[id].points, { x: x2, y: y2 }];
+                elementsCopy[id].points = [...elementsCopy[id].points, { x: x2, y: y2 }];
                 break;
 
             case 'text':
@@ -176,7 +200,7 @@ const Draw = () => {
                     .getContext("2d")
                     .measureText(options.text).width;
                 const textHeight = 24;
-                elementCopy[id] = {
+                elementsCopy[id] = {
                     ...createElement(id, x1, y1, x1 + textwidth*2.25, y1 + textHeight, type),
                     text: options.text
                 }
@@ -185,7 +209,11 @@ const Draw = () => {
             default:
                 throw new Error(`Type not Recognised: ${type}`);
         }
-        setElements(elementCopy, true);
+        setElements(elementsCopy, true);
+        // handle update socket
+        // socket && socket.emit('updateElement', elementCopy[id], sessionId);
+
+        return elementsCopy[id];
     }
 
     const getMouseCoordinates = event => {
@@ -229,12 +257,15 @@ const Draw = () => {
                 }
             }
         } else {
-            const id = elements.length;
+            const id = elements?.length;
             const newElement = createElement(id, clientX, clientY, clientX, clientY, tool.selectedTool);
             setElements(prev => [...prev, newElement]);
             setSelectedElement(newElement);
 
             setAction(tool.selectedTool === 'text' ? 'write' : 'draw');
+
+            // handle create socket
+            // socket && socket.emit('createElement', newElement, sessionId);
         }
     }
 
@@ -261,7 +292,7 @@ const Draw = () => {
         }   
 
         if (action === 'draw') {
-            const index = elements.length - 1;
+            const index = elements?.length - 1;
             const { x1, y1 } = elements[index];
             updateElement(index, x1, y1, clientX, clientY, tool.selectedTool);
 
@@ -315,6 +346,7 @@ const Draw = () => {
                 const { x1, y1, x2, y2 } = adjustElementCoordinates(elements[index]);
                 updateElement(id, x1, y1, x2, y2, type);
             }
+            socket && socket.emit('update', elements[index], sessionId);
         }
 
         if (action === 'write') return;
@@ -352,7 +384,9 @@ const Draw = () => {
         setAction('none');
         setSelectedElement(null);
 
-        updateElement(id, x1, y1, null, null, type, { text: event.target.value });
+        const element = updateElement(id, x1, y1, null, null, type, { text: event.target.value });
+        socket && socket.emit('update', element, sessionId);
+
     }
 
     const onZoom = (delta) => {
@@ -365,11 +399,6 @@ const Draw = () => {
             <button
                 className={`${sessionId ? 'bg-[#0fb884]' : 'bg-[#a8a5ff] hover:bg-[#bbb8ff]'} min-h-[2.25rem] px-3 rounded-lg border-[1px] border-transparent cursor-pointer  absolute top-4 right-4 text-sm`}
                 onClick={() => setSessionCard(true)}
-                disabled={true}
-                style={{
-                    cursor: 'no-drop',
-                    opacity: 0.5,
-                }}
             >
                 Share
             </button>

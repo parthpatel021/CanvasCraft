@@ -1,50 +1,63 @@
-import rough from 'roughjs/bundled/rough.esm';
-const generator = rough.generator();
-
-const createRectangle = (x1, y1, x2, y2) => {
-    const roughElement = generator.rectangle(x1, y1, x2-x1, y2-y1);
-    roughElement.options.stroke = '#eee';
-    roughElement.options.strokeWidth = 2;
-    return roughElement;
+const createRectangle = (id, x1, y1, x2, y2) => {
+    return {
+        type: 'rectangle',
+        id, x1, y1, x2, y2,
+        strokeWidth: 2,
+        strokeColor: '#e1e1e1', 
+    };
 }
 
-const createEllipse = (x1, y1, x2, y2) => {
-    const centerX = (x1+x2)/2;
-    const centerY = (y1+y2)/2;
-    const roughElement = generator.ellipse(centerX, centerY, x2-x1, y2-y1);
-    roughElement.options.stroke = '#eee';
-    roughElement.options.strokeWidth = 2;
-    roughElement.options.roughness = 0.01;
-    return roughElement;
+const createEllipse = (id, x1, y1, x2, y2) => {
+    return {
+        type: 'ellipse',
+        id, x1, y1, x2, y2,
+        strokeWidth: 2,
+        roughness: 0.01,
+        strokeColor: '#e1e1e1', 
+    };
 }
 
-const createLine = (x1, y1, x2, y2) => {
-    const roughElement = generator.line(x1, y1, x2, y2);
-    roughElement.options.stroke = '#eee';
-    roughElement.options.strokeWidth = 2;
-    return roughElement;
+const createLine = (id, x1, y1, x2, y2) => {
+    return {
+        type: 'line',
+        id, x1, y1, x2, y2,
+        strokeWidth: 2,
+        strokeColor: '#e1e1e1', 
+    };
+}
+
+const createDrawing = (id, x1, y1) => {
+    return {
+        type: 'draw', 
+        id, 
+        points:[{x: x1, y: y1}]
+    };
+}
+
+const createTextElement = (id, x1, y1, x2, y2) => {
+    return {
+        type: 'text',
+        id, x1, y1, x2, y2, 
+        text:""
+    };
 }
 
 const createElement = (id, x1, y1, x2, y2, type) => {
-    let roughElement;
     switch (type) {
         case "rectangle":
-            roughElement = createRectangle(x1, y1, x2, y2);
-            return {id, x1, y1, x2, y2, roughElement, type};
+            return createRectangle(id, x1, y1, x2, y2);
 
         case "ellipse":
-            roughElement = createEllipse(x1, y1, x2, y2);
-            return {id, x1, y1, x2, y2, roughElement, type};
+            return createEllipse(id, x1, y1, x2, y2);
         
         case "line":
-            roughElement = createLine(x1, y1, x2, y2);
-            return {id, x1, y1, x2, y2, roughElement, type};
+            return createLine(id, x1, y1, x2, y2);
 
         case "draw":
-            return {id, type, points:[{x: x1, y: y1}]};
+            return createDrawing(id, x1, y1);
 
         case 'text':
-            return {id, type, x1, y1, x2, y2, text:""};
+            return createTextElement(id, x1, y1, x2, y2);
 
         default:
             throw new Error(`Type not recognised: ${type}`);

@@ -152,10 +152,10 @@ const Session = ({ closeSessionCard, sessionId }) => {
                 ref={cardRef}
                 className='bg-[#232329] flex flex-col gap-8 p-10 relative w-[38rem] rounded-lg border-[1px] border-neutral-600 transition text-white'
             >
-                {sessionId === undefined ?
-                    <SessionFrontCard />
-                    :
+                {sessionId ?
                     <SessionBackCard sessionId={sessionId} />
+                    :
+                    <SessionFrontCard />
                 }
 
                 <button className='text-neutral-300 hover:opacity-50 flex absolute top-5 right-5'
