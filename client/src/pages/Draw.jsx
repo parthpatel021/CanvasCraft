@@ -16,6 +16,7 @@ import getElementAtPosition from '../utils/Element/getElementAtPosition';
 import useHistory from '../hooks/useHistory';
 import usePressedKey from './../hooks/usePressedKey';
 import adjustElementCoordinates, { adjustmentRequires } from '../utils/Element/adjustElementCoordinates';
+import generateIntroBackground from '../utils/generateIntroBackground';
 
 const cursorForPosition = (position) => {
     switch (position) {
@@ -34,7 +35,7 @@ const cursorForPosition = (position) => {
 
 const Draw = () => {
     const { tool, setTool } = useTool();
-    const [elements, setElements, undo, redo] = useHistory([]);
+    const [elements, setElements, undo, redo, historyIndex] = useHistory([]);
     const pressedKeys = usePressedKey();
 
     const [action, setAction] = useState('none');
@@ -131,12 +132,16 @@ const Draw = () => {
         ctx.translate(panOffset.x * scale - scaleOffSetX, panOffset.y * scale - scaleOffSetY);
         ctx.scale(scale,scale);
 
+        if(historyIndex === 0){
+            generateIntroBackground(roughCanvas, ctx);
+        }
+
         elements?.forEach(element => {
             if (action === 'write' && selectedElement.id === element.id) return;
             drawElement(roughCanvas, ctx, element);
         })
         ctx.restore();
-    }, [action, elements, selectedElement, panOffset, scale]);
+    }, [action, elements, selectedElement, panOffset, scale, historyIndex]);
 
     // KeyDown 
     useEffect(() => {

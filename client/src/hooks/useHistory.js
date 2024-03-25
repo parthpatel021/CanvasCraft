@@ -20,12 +20,10 @@ const useHistory = (initalState) => {
         }
     }
 
-    console.log(history[index]);
-
     const undo = () => index > 0 && setIndex(prev => prev - 1);
     const redo = () => index < history.length - 1 && setIndex(prev => prev + 1);
 
-    return [history[index], setState, undo, redo];
+    return [history[index], setState, undo, redo, index];
 }
 
 export default useHistory;
