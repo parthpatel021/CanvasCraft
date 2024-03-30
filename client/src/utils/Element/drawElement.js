@@ -33,6 +33,33 @@ const drawLine = (roughCanvas, element) => {
     roughCanvas.draw(roughElement);
 }
 
+const drawArrow = (roughCanvas, element) => {
+    const { x1, y1, x2, y2 } = element;
+    const roughElement = generator.line(x1, y1, x2, y2);
+    roughElement.options.stroke = element.strokeColor;
+    roughElement.options.strokeWidth = element.strokeWidth;
+    
+    roughCanvas.draw(roughElement);
+
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    let angle = Math.atan2(dy, dx);
+    let lineLength = Math.sqrt(dx*dx + dy*dy)
+    let headlen = lineLength > 60 ? 20: lineLength/3;
+
+    const arrowLine1 = generator.line(
+        x2 - headlen * Math.cos(angle - Math.PI / 6), 
+        y2 - headlen * Math.sin(angle - Math.PI / 6), 
+        x2, y2);
+    const arrowLine2 = generator.line(
+        x2 - headlen * Math.cos(angle + Math.PI / 6), 
+        y2 - headlen * Math.sin(angle + Math.PI / 6), 
+        x2, y2);
+    roughCanvas.draw(arrowLine1);
+    roughCanvas.draw(arrowLine2);
+
+}
+
 const getDrawing = (ctx, element) => {
     const pathData = getPathData(element.points, {
         // options
@@ -50,6 +77,8 @@ const addText = (ctx, element) => {
 }
 
 const drawElement = (roughCanvas, ctx, element) => {
+    if(element?.isDeleted) return;
+    
     switch (element.type) {
         case 'rectangle':
             drawRectangle(roughCanvas, element);
@@ -61,6 +90,10 @@ const drawElement = (roughCanvas, ctx, element) => {
 
         case 'line':
             drawLine(roughCanvas, element);
+            break;
+
+        case 'arrow':
+            drawArrow(roughCanvas, element);
             break;
 
         case 'draw':

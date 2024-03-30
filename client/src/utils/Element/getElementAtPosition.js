@@ -35,7 +35,9 @@ const isWithinElement = (x, y, element) => {
 
             return topLeft || topRight || bottomLeft || bottomRight || inside;
         }
-        case 'line': {
+        case 'line': 
+        case 'arrow': 
+        {
             const on = onLine(x1, y1, x2, y2, x, y);
 
             const start = nearPoint(x, y, x1, y1, 'start');

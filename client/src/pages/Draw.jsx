@@ -117,30 +117,31 @@ const Draw = () => {
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const roughCanvas = rough.canvas(canvas);
-
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        
-        const scaleWidth = canvas.width * scale;
-        const scaleHeight = canvas.height * scale;
-        const scaleOffSetX = (scaleWidth - canvas.width) / 2;
-        const scaleOffSetY = (scaleHeight - canvas.height) / 2;
-        setScaleOffset({ x: scaleOffSetX, y: scaleOffSetY});
-        
-        
-        ctx.save();
-        ctx.translate(panOffset.x * scale - scaleOffSetX, panOffset.y * scale - scaleOffSetY);
-        ctx.scale(scale,scale);
-
         if(historyIndex === 0){
             generateIntroBackground(roughCanvas, ctx);
-        }
+        } else {
 
-        elements?.forEach(element => {
-            if (action === 'write' && selectedElement.id === element.id) return;
-            drawElement(roughCanvas, ctx, element);
-        })
-        ctx.restore();
+            
+            const scaleWidth = canvas.width * scale;
+            const scaleHeight = canvas.height * scale;
+            const scaleOffSetX = (scaleWidth - canvas.width) / 2;
+            const scaleOffSetY = (scaleHeight - canvas.height) / 2;
+            setScaleOffset({ x: scaleOffSetX, y: scaleOffSetY});
+            
+            
+            ctx.save();
+            ctx.translate(panOffset.x * scale - scaleOffSetX, panOffset.y * scale - scaleOffSetY);
+            ctx.scale(scale,scale);
+
+
+            elements?.forEach(element => {
+                if (action === 'write' && selectedElement.id === element.id) return;
+                drawElement(roughCanvas, ctx, element);
+            })
+            ctx.restore();
+        }
     }, [action, elements, selectedElement, panOffset, scale, historyIndex]);
 
     // KeyDown 
@@ -192,6 +193,7 @@ const Draw = () => {
         switch (type) {
             case 'rectangle':
             case 'line':
+            case 'arrow':
             case 'ellipse':
                 elementsCopy[id] = createElement(id, x1, y1, x2, y2, type);
                 break;

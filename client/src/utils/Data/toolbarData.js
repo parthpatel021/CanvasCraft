@@ -49,14 +49,14 @@ const toolbarData = [
         icon: <CircleOutlinedIcon sx={{ fontSize: 18 }} />,
         numShortcut: 3,
     },
-    // {
-    //     name: 'Arrow',
-    //     slug: 'arrow',
-    //     cursor: 'crosshair',
-    //     filledIcon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
-    //     icon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
-    //     numShortcut: 4,
-    // },
+    {
+        name: 'Arrow',
+        slug: 'arrow',
+        cursor: 'crosshair',
+        filledIcon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
+        icon: <TrendingFlatIcon sx={{ fontSize: 18 }} />,
+        numShortcut: 4,
+    },
     {
         name: 'Line',
         slug: 'line',

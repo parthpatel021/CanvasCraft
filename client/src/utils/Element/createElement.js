@@ -26,6 +26,15 @@ const createLine = (id, x1, y1, x2, y2) => {
     };
 }
 
+const createArrow = (id, x1, y1, x2, y2) => {
+    return {
+        type: 'arrow',
+        id, x1, y1, x2, y2,
+        strokeWidth: 2,
+        strokeColor: '#e1e1e1', 
+    };
+}
+
 const createDrawing = (id, x1, y1) => {
     return {
         type: 'draw', 
@@ -52,6 +61,9 @@ const createElement = (id, x1, y1, x2, y2, type) => {
         
         case "line":
             return createLine(id, x1, y1, x2, y2);
+
+        case "arrow":
+            return createArrow(id, x1, y1, x2, y2);
 
         case "draw":
             return createDrawing(id, x1, y1);
