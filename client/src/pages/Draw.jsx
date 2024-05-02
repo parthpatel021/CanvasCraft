@@ -7,6 +7,7 @@ import rough from 'roughjs/bundled/rough.esm';
 import ToolBar from '../components/Draw/ToolBar';
 import DrawFooter from '../components/Draw/DrawFooter';
 import Session from '../components/Draw/Session';
+import HelpCard from '../components/Draw/HelpCard';
 
 import { useTool } from '../hooks/useTool';
 import createElement from '../utils/Element/createElement';
@@ -48,6 +49,7 @@ const Draw = () => {
 
     const location = useLocation();
     const [sessionCard, setSessionCard] = useState(false);
+    const [helpCard, setHelpCard] = useState(false);
     const [sessionId, setSessionId] = useState(null);
     const [socket, setSocket] = useState(null);
 
@@ -60,6 +62,7 @@ const Draw = () => {
             setSocket(io(process.env.REACT_APP_API));
         } else {
             setSessionId(null);
+            setSessionCard(false);
             setSocket(null);
         }
     }, [setSessionId, location.search])
@@ -409,9 +412,16 @@ const Draw = () => {
             >
                 Share
             </button>
-            {sessionCard ? <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} /> : null}
+            {sessionCard && <Session closeSessionCard={() => setSessionCard(false)} sessionId={sessionId} />}
+            {helpCard && <HelpCard closeHelpCard={() => setHelpCard(false)} />}
 
-            <DrawFooter scale={scale} onZoom={onZoom} undo={undo} redo={redo} />
+            <DrawFooter 
+                scale={scale} 
+                onZoom={onZoom} 
+                undo={undo} 
+                redo={redo} 
+                openHelpCard={() => setHelpCard(true)}
+            />
 
             {action === 'write' ? (
                 <textarea

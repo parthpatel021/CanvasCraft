@@ -2,7 +2,7 @@ import React from 'react';
 import ToolButton from './ToolButton';
 import pannelIconsData, { FooterHoverButtonIcon } from '../../utils/Data/footerPannelIconData';
 
-const DrawFooter = ({ scale, onZoom, undo, redo }) => {
+const DrawFooter = ({ scale, onZoom, undo, redo, openHelpCard }) => {
     const zoomResetIcon = <FooterHoverButtonIcon icon={new Intl.NumberFormat("en-GB", {style: 'percent'}).format(scale)}  name='Reset Zoom'/>;
 
                         
@@ -46,6 +46,15 @@ const DrawFooter = ({ scale, onZoom, undo, redo }) => {
                         handleClick={redo}
                     />
                 </div>
+            </div>
+            <div className=' h-10 flex justify-center items-center bg-[#232329] rounded-lg'
+                onClick={openHelpCard}
+            >
+                <ToolButton
+                    {...pannelIconsData.help}
+                    active={false}
+                    handleClick={redo}
+                />
             </div>
 
         </footer>
