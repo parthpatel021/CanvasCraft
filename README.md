@@ -5,14 +5,8 @@ CanvasCraft is a React-based drawing application that enables users to create sh
 CanvasCraft also features a session-sharing functionality, allowing real-time collaboration. Users can generate a session link to invite others to join the drawing session, fostering teamwork and creative collaboration.
 
 ## Technologies Used
-
-- **Client:**
-  - React.js
+  - Next.js
   - Tailwind CSS
-  - Material UI
-
-- **Server:**
-  - Node.js
   - Socket.IO
 
 ## Setup Instructions
