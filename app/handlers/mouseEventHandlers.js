@@ -1,11 +1,14 @@
-export function mouseDown(ev) {
-    console.log('mouseDown');
+import { Element } from "@/models/element"
+
+export function mouseDown(ev, addElements) {
+    const ele = new Element({id: 1, type: "rectangle", x1: 100, y1: 100, x2: 300, y2: 300});
+    addElements([ele]);
 }
 
 export function mouseMove(ev) {
-    console.log('mouseMove');
+
 }
 
 export function mouseUp(ev) {
-    console.log('mouseUp');
+
 }
