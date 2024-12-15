@@ -1,3 +1,6 @@
+import rough from 'roughjs/bundled/rough.esm';
+const generator = rough.generator();
+
 const availableElementTypes = ["rectangle", "ellipse", "line", "arrow", "draw", "text"];
 
 export class Element {
@@ -34,7 +37,7 @@ export class Element {
         return this.type;
     }
 
-    get coordinates() {
+    get elementsPoints() {
         if (this.elementType === "draw") {
             return { points: this.points };
         } 
@@ -57,16 +60,28 @@ export class Element {
         };
     }
 
-    /**
-     * Will draw current element to canvas context 'ctx'
-     * @param {Object} ctx 
-     */
-    drawElement(ctx) {
-        const coord = this.coordinates;
-        const {x1, y1, x2, y2} = coord;
+    coordinates() {
+        switch (this.elementType) {
+            case "rectangle": {
+                const {x1, y1, x2, y2} = this.elementsPoints;
+                return [x1, y1, x2-x1, y2-y1];
+            }
 
-        ctx.rect(x1, y1, x2, y2);
-        ctx.strokeStyle = 'white';
-        ctx.stroke();
+            default:
+                const {x1, y1, x2, y2} = this.elementsPoints;
+                return [x1, y1, x2-x1, y2-y1];
+
+        }
+    }
+
+    /**
+     * Will draw current element to rough canvas context 'roughCanvas'
+     * @param {Object} roughCanvas
+     */
+    drawElement(roughCanvas) {
+        const roughElement = generator.rectangle(...this.coordinates());
+        Object.assign(roughElement.options, this.styleOptions);
+
+        roughCanvas.draw(roughElement);
     }
 }
