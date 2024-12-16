@@ -1,7 +1,4 @@
-import rough from 'roughjs/bundled/rough.esm';
-const generator = rough.generator();
-
-const availableElementTypes = ["rectangle", "ellipse", "line", "arrow", "draw", "text"];
+import {availableElementTypes, roughShapeGenerator} from "@/utils/roughGenerator"
 
 export class Element {
     /**
@@ -66,6 +63,17 @@ export class Element {
                 const {x1, y1, x2, y2} = this.elementsPoints;
                 return [x1, y1, x2-x1, y2-y1];
             }
+            case "ellipse": {
+                const {x1, y1, x2, y2} = this.elementsPoints;
+                const centerX = (x1 + x2) / 2;
+                const centerY = (y1 + y2) / 2;
+                return [centerX, centerY, x2 - x1, y2 - y1];
+            }
+            case "line":
+            case "arrow": {
+                const {x1, y1, x2, y2} = this.elementsPoints;
+                return [x1, y1, x2, y2];
+            }
 
             default:
                 const {x1, y1, x2, y2} = this.elementsPoints;
@@ -78,10 +86,18 @@ export class Element {
      * Will draw current element to rough canvas context 'roughCanvas'
      * @param {Object} roughCanvas
      */
-    drawElement(roughCanvas) {
-        const roughElement = generator.rectangle(...this.coordinates());
-        Object.assign(roughElement.options, this.styleOptions);
 
-        roughCanvas.draw(roughElement);
+    generatRoughElement() {
+        let roughElements = roughShapeGenerator[this.elementType](this.coordinates());
+        roughElements.forEach(roughElement => {
+            Object.assign(roughElement.options, this.styleOptions);
+        });
+        this.roughElements = roughElements;
+    }
+    drawElement(roughCanvas) {
+        if(!this.roughElement) {
+            this.generatRoughElement();
+        }
+        this.roughElements.forEach(roughElement => roughCanvas.draw(roughElement))
     }
 }
