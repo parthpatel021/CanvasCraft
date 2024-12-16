@@ -1,9 +1,10 @@
 'use client';
-import{ useEffect, useLayoutEffect, useRef} from 'react';
+import{ useLayoutEffect, useRef, useState} from 'react';
 import rough from 'roughjs/bundled/rough.esm';
 
 import useHistory from '@/hooks/useHistory';
 import useTool from '@/hooks/useTool';
+import useWindowSize from '@/hooks/useWindowSize';
 
 import { mouseMove, mouseDown, mouseUp } from "./handlers/mouseEventHandlers"
 
@@ -11,8 +12,11 @@ import ToolBar from '@/components/ToolBar';
 
 export default function Home() {
     const canvasRef = useRef();
-    const { elements, addElements } = useHistory();
+    const { windowSize } = useWindowSize();
+    const { elements, addElements, updateScreen } = useHistory();
     const { tool, setTool } = useTool();
+    // FIXME: store element id and get element from that to use.
+    const [ activeElement, setActiveElement ] = useState(null);
     // Canvas
     useLayoutEffect(() => {
         const canvas = canvasRef.current;
@@ -23,11 +27,11 @@ export default function Home() {
     }, [elements]);
 
     const canvasProps = {
-        onMouseMove: mouseMove,
-        onMouseDown: (ev) => mouseDown(ev, addElements, tool.selectedTool),
-        onMouseUp: mouseUp,
-        width: window?.innerWidth,
-        height: window?.innerHeight,
+        onMouseMove: (ev) => mouseMove(ev, updateScreen, activeElement),
+        onMouseDown: (ev) => mouseDown(ev, addElements, tool.selectedTool, setActiveElement),
+        onMouseUp: (ev) =>  mouseUp(ev, setActiveElement),
+        width: windowSize.width,
+        height: windowSize.height,
     }
 
     return (

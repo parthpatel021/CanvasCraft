@@ -5,6 +5,7 @@ export class Element {
      * @param {Object} vals
      */
     constructor(vals) {
+        // FIXME: generate element id sequentially
         this.id = vals.id;
         this.type = vals.type;
         // Points
@@ -57,6 +58,12 @@ export class Element {
         };
     }
 
+    updateElementCoordinates(coord) {
+        const {x2, y2} = coord;
+        this.x2 = x2;
+        this.y2 = y2;
+    }
+
     coordinates() {
         switch (this.elementType) {
             case "rectangle": {
@@ -74,7 +81,6 @@ export class Element {
                 const {x1, y1, x2, y2} = this.elementsPoints;
                 return [x1, y1, x2, y2];
             }
-
             default:
                 const {x1, y1, x2, y2} = this.elementsPoints;
                 return [x1, y1, x2-x1, y2-y1];
@@ -82,22 +88,21 @@ export class Element {
         }
     }
 
-    /**
-     * Will draw current element to rough canvas context 'roughCanvas'
-     * @param {Object} roughCanvas
-     */
-
-    generatRoughElement() {
+    generateRoughElement() {
         let roughElements = roughShapeGenerator[this.elementType](this.coordinates());
         roughElements.forEach(roughElement => {
             Object.assign(roughElement.options, this.styleOptions);
         });
         this.roughElements = roughElements;
     }
+    /**
+     * Will draw current element to rough canvas context 'roughCanvas'
+     * @param {Object} roughCanvas
+     */
     drawElement(roughCanvas) {
-        if(!this.roughElement) {
-            this.generatRoughElement();
-        }
+        // FIXME: remove generating roughElement every times,
+        //        try to only generate when current element is active element and its coordinates are getting chnage
+        this.generateRoughElement();
         this.roughElements.forEach(roughElement => roughCanvas.draw(roughElement))
     }
 }

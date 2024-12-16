@@ -7,7 +7,7 @@ const getMouseCoordinates = event => {
     return { clientX, clientY };
 }
 
-export function mouseDown(ev, addElements, selectedTool) {
+export function mouseDown(ev, addElements, selectedTool, setActiveElement) {
     if (selectedTool === "hand" || selectedTool === "selection") {
         return;
     }
@@ -17,8 +17,8 @@ export function mouseDown(ev, addElements, selectedTool) {
     const coord = {
         x1: clientX,
         y1: clientY,
-        x2: 100 + clientX,
-        y2: 100 + clientY,
+        x2: clientX,
+        y2: clientY,
     }
     values.id = 1;
     values.type = selectedTool;
@@ -30,12 +30,20 @@ export function mouseDown(ev, addElements, selectedTool) {
 
     const ele = new Element(values);
     addElements([ele]);
+    setActiveElement(ele);
 }
 
-export function mouseMove(ev) {
-
+export function mouseMove(ev, updateScreen, activeElement) {
+    const {clientX, clientY} = getMouseCoordinates(ev);
+    if(activeElement) {
+        activeElement.updateElementCoordinates({
+            x2: clientX,
+            y2: clientY,
+        })
+        updateScreen()
+    }
 }
 
-export function mouseUp(ev) {
-
+export function mouseUp(ev, setActiveElement) {
+    setActiveElement(null);
 }

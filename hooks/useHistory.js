@@ -9,10 +9,16 @@ export default function useHistory() {
      */
     const addElements = (newElements) => {
         if (newElements?.length === 0) {
-            console.log("ERROR: addElements expects array of object : ", newElements);            
+            console.log("ERROR: addElements expects array of object : ", newElements);
+            return;
         }
-        setElements(prev => [...prev, ...newElements]); 
+        setElements(prev => [...prev, ...newElements]);
     }
 
-    return {elements, addElements};
+    // FIXME : find a improved way to update screen
+    const updateScreen = () => {
+        setElements(prev => [...prev]);
+    }
+
+    return {elements, addElements, updateScreen};
 }
