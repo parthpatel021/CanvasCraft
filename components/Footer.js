@@ -4,14 +4,6 @@ import { getPannelIconsData } from '@/utils/toolbarData';
 
 export const DrawFooter = ({ handleCanvasScale, scale }) => {
     const pannelIconsData = getPannelIconsData(scale);
-    /**
-     * factor should only contains zero value to reset zoom
-     * @param {Number} factor
-     */
-    const handlezoom = (factor) => {
-        const currentScale = scale*100;
-        handleCanvasScale( factor ? Math.round(currentScale + factor) : 100);
-    }
 
     return (
         <footer className='absolute text-white bottom-4 w-full px-4 flex justify-between'>
@@ -21,17 +13,17 @@ export const DrawFooter = ({ handleCanvasScale, scale }) => {
                     <ToolButton
                         {...pannelIconsData.zoomOut}
                         active={false}
-                        handleClick={() => handlezoom(-10)}
+                        handleClick={() => handleCanvasScale(-0.1)}
                     />
                     <ToolButton
                         {...pannelIconsData.zoomReset}
                         active={false}
-                        handleClick={() => handlezoom(0)}
+                        handleClick={() => handleCanvasScale(false)}
                     />
                     <ToolButton
                         {...pannelIconsData.zoomIn}
                         active={false}
-                        handleClick={() => handlezoom(10)}
+                        handleClick={() => handleCanvasScale(0.1)}
                     />
                 </div>
             </div>
