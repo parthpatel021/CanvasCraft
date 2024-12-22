@@ -1,3 +1,4 @@
+import { getPathData } from "@/utils/perfectFreehandFunctions";
 import {availableElementTypes, roughShapeGenerator} from "@/utils/roughGenerator"
 
 export class Element {
@@ -62,6 +63,10 @@ export class Element {
         const {x2, y2} = coord;
         this.x2 = x2;
         this.y2 = y2;
+
+        if(this.elementType === "draw") {
+            this.points.push({x: x2, y: y2});
+        }
     }
 
     coordinates() {
@@ -80,6 +85,10 @@ export class Element {
             case "arrow": {
                 const {x1, y1, x2, y2} = this.elementsPoints;
                 return [x1, y1, x2, y2];
+            }
+            case "draw": {
+                const {points} = this.elementsPoints;
+                return points;
             }
             default:
                 const {x1, y1, x2, y2} = this.elementsPoints;
@@ -102,6 +111,15 @@ export class Element {
     drawElement(roughCanvas) {
         // FIXME: remove generating roughElement every times,
         //        try to only generate when current element is active element and its coordinates are getting chnage
+        if(this.elementType === "draw") {
+            const ctx = roughCanvas.ctx;
+            // FIXME: add options to chnage style of drawing
+            const pathData = getPathData(this.coordinates(), {size: 12});
+            ctx.fillStyle = this.styleOptions.stroke;
+            ctx.fill(new Path2D(pathData));
+            return;
+        }
+
         this.generateRoughElement();
         this.roughElements.forEach(roughElement => roughCanvas.draw(roughElement))
     }
