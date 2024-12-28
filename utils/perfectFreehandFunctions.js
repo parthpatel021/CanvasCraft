@@ -1,42 +1,22 @@
-import { getStroke } from 'perfect-freehand'
+import { getStroke } from 'perfect-freehand';
 
-const average = (a, b) => (a + b) / 2
+const average = (a, b) => (a + b) / 2;
+
 function _getSvgPathFromStroke(points, closed = true) {
-    const len = points.length
+    if (points.length < 4) return ``;
 
-    if (len < 4) {
-        return ``
+    const [a, b, c] = points;
+    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(2)},${b[1].toFixed(2)} ${average(b[0], c[0]).toFixed(2)},${average(b[1], c[1]).toFixed(2)} T`;
+
+    for (let i = 2; i < points.length - 1; i++) {
+        const [a, b] = [points[i], points[i + 1]];
+        result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(2)} `;
     }
 
-    let a = points[0]
-    let b = points[1]
-    const c = points[2]
-
-    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(
-        2
-    )},${b[1].toFixed(2)} ${average(b[0], c[0]).toFixed(2)},${average(
-        b[1],
-        c[1]
-    ).toFixed(2)} T`
-
-    for (let i = 2, max = len - 1; i < max; i++) {
-        a = points[i]
-        b = points[i + 1]
-        result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(
-            2
-        )} `
-    }
-
-    if (closed) {
-        result += 'Z'
-    }
-
-    return result
+    return closed ? result + 'Z' : result;
 }
 
-export function getPathData(points, options){
-    const outlinePoints = getStroke(points, {...options})
-    const pathData = _getSvgPathFromStroke(outlinePoints)
-
-    return pathData;
+export function getPathData(points, options) {
+    const outlinePoints = getStroke(points, { ...options });
+    return _getSvgPathFromStroke(outlinePoints);
 }
