@@ -1,14 +1,14 @@
 import { Element } from "@/models/element";
 
-const getMouseCoordinates = event => ({
-    clientX: event.clientX,
-    clientY: event.clientY
+const getMouseCoordinates = (event, stage) => ({
+    clientX: (event.clientX - stage.x * stage.scale) / (stage.scale),
+    clientY: (event.clientY - stage.y * stage.scale) / (stage.scale),
 });
 
-export function mouseDown(ev, addElements, selectedTool, setActiveElement) {
+export function mouseDown(ev, addElements, selectedTool, setActiveElement, stage) {
     if (selectedTool === "hand" || selectedTool === "selection") return;
 
-    const { clientX, clientY } = getMouseCoordinates(ev);
+    const { clientX, clientY } = getMouseCoordinates(ev, stage);
     const values = {
         id: 1,
         type: selectedTool,
@@ -23,9 +23,9 @@ export function mouseDown(ev, addElements, selectedTool, setActiveElement) {
     setActiveElement(ele);
 }
 
-export function mouseMove(ev, updateScreen, activeElement) {
+export function mouseMove(ev, updateScreen, activeElement, stage) {
     if (activeElement) {
-        const { clientX, clientY } = getMouseCoordinates(ev);
+        const { clientX, clientY } = getMouseCoordinates(ev, stage);
         activeElement.updateElementCoordinates({ x2: clientX, y2: clientY });
         updateScreen();
     }

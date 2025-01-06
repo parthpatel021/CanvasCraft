@@ -78,7 +78,7 @@ class Home extends Component {
     }
 
     getNewScale(currentScale, scaleFactor) {
-        if (!scaleFactor) return 1;
+        if (scaleFactor === false) return 1;
         let newScale = currentScale + scaleFactor;
         return Math.min(Math.max(newScale, 0.1), 9.9);
     }
