@@ -1,14 +1,10 @@
 import "./ui/globals.css";
 import { inter } from "./ui/fonts";
 import { Metadata } from "next";
-import Navbar from "./ui/navbar";
 
 export const metadata: Metadata = {
-  title: {
-    template: "%s | E-Cart",
-    default: "E-Cart Products",
-  },
-  description: "An e-commerce website with all require features",
+  title:  "CanvasCraft",
+  description: "Draw, Flow and Enjoy",
 };
 
 export default function RootLayout({
@@ -18,8 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
-        <Navbar />
+      <body className={`${inter.className} antialiased `}>
         {children}
       </body>
     </html>
