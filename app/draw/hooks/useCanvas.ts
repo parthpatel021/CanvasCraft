@@ -2,6 +2,9 @@
 
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import rough from "roughjs";
+import { Shape } from "../models/shape";
+import { drawableCanvasType } from "@/app/lib/constants";
+import { SUPPORTED_TYPE_ARR, SUPPOTED_TYPE } from "@/app/lib/definations";
 
 export type CanvasHook = {
     selectedTool: string;
@@ -21,22 +24,17 @@ export default function useCanvas() {
         }
         const ctx = canvas?.getContext("2d") as CanvasRenderingContext2D;
         const generator = roughCanvas.generator;
-        
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const opts =  { stroke: 'white', strokeWidth: 2, bowing: 2, roughness: 2.8, fill: 'blue' };
-        const elementsWithShape = elements.map(ele => {
-            if (!ele.shape) {
-                ele.shape = generator.rectangle(ele.x, ele.y, 200, 200, opts);
+        elements.forEach((ele) => {
+            const roughEleShape = ele.getRoughShape(generator);
+            if (roughEleShape) {
+                roughCanvas.draw(ele.getRoughShape(generator));
+            } else {
+                console.warn("Unable to draw shape for element : ", ele);
             }
-            return ele;
         });
-        setElements(elementsWithShape);
-
-        elementsWithShape.forEach((ele) => {
-            roughCanvas.draw(ele.shape);
-        });
-        
     }
 
     // Effects
@@ -58,8 +56,9 @@ export default function useCanvas() {
     }, [roughCanvas, elements.length]);
 
     // Element Handlers
-    const addElement = (elementType: string, x: number, y: number) => {
-        setElements((prev: any) => [...prev, { type: elementType, x, y }]);
+    const addElement = (elementType: SUPPOTED_TYPE, x: number, y: number) => {
+        const elementShape = new Shape(elementType, x, y);
+        setElements((prev: any) => [...prev, elementShape]);
     }
 
     // Mouse Event Handlers
@@ -72,10 +71,12 @@ export default function useCanvas() {
 
     const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>, selectedTool: string) => {
         const { clientX, clientY } = getViewCoords(ev);
-        addElement(selectedTool, clientX, clientY);
+        if (SUPPORTED_TYPE_ARR.includes(selectedTool)) {
+            addElement(selectedTool as SUPPOTED_TYPE, clientX, clientY);
+        }
     };
-    const mouseMove = () => {};
-    const mouseUp = () => {};
+    const mouseMove = () => { };
+    const mouseUp = () => { };
 
     return {
         mouseDown,

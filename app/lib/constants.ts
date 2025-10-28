@@ -59,14 +59,16 @@ const toolBarBtns: ToolButton[] = [
         numShortcut: 5,
         type: "secondary",
     },
-    {
-        name: "Draw",
-        slug: "draw",
-        cursor: "crosshair",
-        icon: PencilIcon,
-        numShortcut: 6,
-        type: "secondary",
-    },
+    // Placeholder for future tools (handled separately).
+    // Example "Draw" entry — uncomment and implement when ready:
+    // {
+    //     name: "Draw (coming soon)",
+    //     slug: "draw",
+    //     cursor: "crosshair",
+    //     icon: PencilIcon,
+    //     numShortcut: 6,
+    //     type: "secondary",
+    // },
     {
         name: "Text",
         slug: "text",
@@ -77,4 +79,6 @@ const toolBarBtns: ToolButton[] = [
     },
 ];
 
-export { toolBarBtns };
+const drawableCanvasType = ["rectangle", "ellipse", "line", "arrow", "text"]
+
+export { toolBarBtns, drawableCanvasType };
