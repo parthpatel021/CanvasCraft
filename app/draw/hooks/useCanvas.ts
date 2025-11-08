@@ -114,12 +114,13 @@ export default function useCanvas() {
         }
 
     };
-    const mouseUp = () => {
+    const mouseUp = (resetTool: () => void) => {
         const element = getActiveElement();
         if (element) {
             resetActiveElement();
             draw();
         }
+        resetTool();
     };
 
     return {

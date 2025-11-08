@@ -31,7 +31,7 @@ export default function Canvas() {
             <canvas
                 onMouseMove={mouseMove}
                 onMouseDown={(ev) => mouseDown(ev, tools.selectedTool)}
-                onMouseUp={mouseUp}
+                onMouseUp={(ev) => mouseUp(tools.resetTool)}
                 width={size.width}
                 height={size.height}
                 id='canvas'
