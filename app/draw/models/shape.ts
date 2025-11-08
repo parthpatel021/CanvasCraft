@@ -77,4 +77,12 @@ export class Shape {
         }
         return null;
     }
+
+    getAbsoluteCoords() {
+        const x1 = Math.min(this.x1, this.x2);
+        const y1 = Math.min(this.y1, this.y2);
+        const x2 = Math.max(this.x1, this.x2);
+        const y2 = Math.max(this.y1, this.y2);
+        return { x1, y1, x2, y2 };
+    }
 }
