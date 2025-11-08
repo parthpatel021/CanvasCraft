@@ -50,6 +50,18 @@ export default function useCanvas() {
                 console.warn("Unable to draw shape for element : ", ele);
             }
         });
+
+        // Add border to active element
+        const activeElement = getActiveElement();
+        if (activeElement) {
+            const activeBox = new Shape("rectangle", activeElement.x1 - 10, activeElement.y1 - 10);
+            activeBox.update(
+                { x2: activeElement.x2 + 10, y2: activeElement.y2 + 10 },
+                { stroke: "blue", strokeWidth: 1, roughness: 0, bowing: 0, fill: null }
+            );
+            const roughActiveBox = activeBox.getRoughShape();
+            roughCanvas.draw(roughActiveBox);
+        }
     }
 
     const initCanvas = () => {
@@ -101,7 +113,7 @@ export default function useCanvas() {
         }
 
     };
-    const mouseUp = () => { 
+    const mouseUp = () => {
         const element = getActiveElement();
         if (element) {
             resetActiveElement();

@@ -15,7 +15,7 @@ export class Shape {
         this.type = type;
         this.x1 = x1; this.y1 = y1;
         this.roughObj = null;
-        this.opts = { stroke: 'white', strokeWidth: 2, bowing: 0, roughness: 0, fill: 'blue' };
+        this.opts = { stroke: 'white', strokeWidth: 2, bowing: 0, roughness: 0, fill: 'gray' };
 
         this.x2 = x1; this.y2 = y1;
     }
