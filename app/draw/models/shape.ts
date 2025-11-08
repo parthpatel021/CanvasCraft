@@ -1,41 +1,76 @@
 import { SUPPOTED_TYPE } from "@/app/lib/definations";
-import { RoughGenerator } from "roughjs/bin/generator";
+import { v4 } from "uuid";
 
 export class Shape {
     type: SUPPOTED_TYPE;
     x1: number; y1: number;
     x2: number; y2: number;
-    opts: object;
+    opts: Record<string, any>;
+    uuid: string;
 
-    roughObj: object | null; // rough object
+    roughObj: any = null; // rough object
 
     constructor(type: SUPPOTED_TYPE, x1: number, y1: number) {
+        this.uuid = v4()
         this.type = type;
         this.x1 = x1; this.y1 = y1;
         this.roughObj = null;
-        this.opts = { stroke: 'white', strokeWidth: 2, bowing: 2, roughness: 2.8, fill: 'blue' };
+        this.opts = { stroke: 'white', strokeWidth: 2, bowing: 0, roughness: 0, fill: 'blue' };
 
-        this.x2 = 200; this.y2 = 200;
+        this.x2 = x1; this.y2 = y1;
     }
 
-    updateEndPoint(x2: number, y2: number) {
-        this.x2 = x2;
-        this.y2 = y2;
+    _updateCoords(coords: Partial<Record<'x1'|'y1'|'x2'|'y2', number>> = {}) {
+        if (coords.x1 !== undefined) {
+            this.x1 = coords.x1;
+        }
+        if (coords.y1 !== undefined) {
+            this.y1 = coords.y1;
+        }
+        if (coords.x2 !== undefined) {
+            this.x2 = coords.x2;
+        }
+        if (coords.y2 !== undefined) {
+            this.y2 = coords.y2;
+        }
+
     }
 
-    getRoughShape(generator: RoughGenerator) {
+    _updateOpts(opts: Partial<Record<string, any>> = {}) {
+        this.opts = {...this.opts, ...opts};
+    }
+
+    update(coords: Partial<Record<'x1'|'y1'|'x2'|'y2', number>> = {}, opts: Partial<Record<string, any>> = {}) {
+        if (Object.keys(coords).length) {
+            this._updateCoords(coords);
+        }
+        if (Object.keys(opts).length) {
+            this._updateOpts(opts);
+        }
+        // this.getRoughShape();
+        const updatedShape = this.generateRoughObj();
+        this.roughObj = updatedShape;
+    }
+
+    getRoughShape() {
         if (!this.roughObj) {
-            this.roughObj = this.generateRoughObj(generator);
+            this.roughObj = this.generateRoughObj();
         }
         return this.roughObj;
     }
 
-    generateRoughObj(generator: RoughGenerator) {
+    generateRoughObj(): any {
+        const rc = (globalThis as any).roughCanvas;
+        const generator = rc.generator;
         if (this.type === "rectangle") {
-            return generator.rectangle(this.x1, this.y1, this.x2, this.y2, this.opts);
+            return generator.rectangle(this.x1, this.y1, this.x2-this.x1, this.y2-this.y1, this.opts);
         }
         if (this.type === "ellipse") {
-            return generator.ellipse(this.x1, this.y1, this.x2, this.y2, this.opts);
+            const centerX = (this.x1 + this.x2) / 2;
+            const centerY = (this.y1 + this.y2) / 2;
+            const widthX = this.x2 - this.x1;
+            const widthY = this.y2 - this.y1;
+            return generator.ellipse(centerX, centerY, widthX, widthY, this.opts);
         }
         if (this.type === "line") {
             return generator.line(this.x1, this.y1, this.x2, this.y2, this.opts);

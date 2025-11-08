@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import rough from "roughjs";
 import { Shape } from "../models/shape";
 import { drawableCanvasType } from "@/app/lib/constants";
 import { SUPPORTED_TYPE_ARR, SUPPOTED_TYPE } from "@/app/lib/definations";
+import { RoughCanvas } from "roughjs/bin/canvas";
 
 export type CanvasHook = {
     selectedTool: string;
@@ -14,51 +15,63 @@ export type CanvasHook = {
 };
 
 export default function useCanvas() {
-    const [roughCanvas, setRoughCanvas] = useState<ReturnType<typeof rough['canvas']> | null>(null);
-    const [elements, setElements] = useState<any[]>([]);
+    const getRoughCanvas = useCallback(() => {
+        const rc = (globalThis as any).roughCanvas;
+        if (!rc) {
+            initCanvas();
+        }
+        return (globalThis as any).roughCanvas;
+    }, [(globalThis as any).roughCanvas]);
+
+    const elements = React.useRef<Record<string, Shape>>({}); // uuid to element mapping
+    const elementList = React.useRef<string[]>([]); // element list uuid
+    const [activeElementUuid, setActiveElementUuid] = useState("");
+
+    const getActiveElement = useCallback(() => elements.current[activeElementUuid], [activeElementUuid]);
+
+    const setActiveElement = (ele: Shape) => setActiveElementUuid(ele?.uuid);
+    const resetActiveElement = () => setActiveElementUuid("");
 
     const draw = () => {
         const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
-        if (!canvas || !roughCanvas) {
+        const roughCanvas = getRoughCanvas();
+        if (!canvas) {
             return;
         }
         const ctx = canvas?.getContext("2d") as CanvasRenderingContext2D;
-        const generator = roughCanvas.generator;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        elements.forEach((ele) => {
-            const roughEleShape = ele.getRoughShape(generator);
+        elementList.current.forEach((uuid) => {
+            const ele = elements.current[uuid];
+            const roughEleShape = ele.getRoughShape();
             if (roughEleShape) {
-                roughCanvas.draw(ele.getRoughShape(generator));
+                roughCanvas.draw(roughEleShape);
             } else {
                 console.warn("Unable to draw shape for element : ", ele);
             }
         });
     }
 
-    // Effects
-    useEffect(() => {
+    const initCanvas = () => {
         // Initalize canvas and rendering context
         const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
         if (!canvas) return;
         const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         const rc = rough.canvas(canvas);
-        setRoughCanvas(rc);
+        (globalThis as any).roughCanvas = rc;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }, []);
-
-    useEffect(() => {
-        if (!roughCanvas) {
-            return;
+        if (elementList.current.length) {
+            draw();
         }
-        draw();
-    }, [roughCanvas, elements.length]);
+    }
 
-    // Element Handlers
     const addElement = (elementType: SUPPOTED_TYPE, x: number, y: number) => {
         const elementShape = new Shape(elementType, x, y);
-        setElements((prev: any) => [...prev, elementShape]);
+        // store in map and list
+        elements.current[elementShape.uuid] = elementShape;
+        elementList.current.push(elementShape.uuid);
+        setActiveElement(elementShape);
+        draw();
     }
 
     // Mouse Event Handlers
@@ -75,8 +88,26 @@ export default function useCanvas() {
             addElement(selectedTool as SUPPOTED_TYPE, clientX, clientY);
         }
     };
-    const mouseMove = () => { };
-    const mouseUp = () => { };
+
+    const mouseMove = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+        const { clientX, clientY } = getViewCoords(ev);
+        const element = getActiveElement();
+        if (element) {
+            element.update({
+                x2: clientX,
+                y2: clientY,
+            });
+            draw();
+        }
+
+    };
+    const mouseUp = () => { 
+        const element = getActiveElement();
+        if (element) {
+            resetActiveElement();
+            draw();
+        }
+    };
 
     return {
         mouseDown,
