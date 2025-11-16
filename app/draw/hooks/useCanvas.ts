@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import rough from "roughjs";
 import { Shape } from "../models/shape";
-import { drawableCanvasType } from "@/app/lib/constants";
-import { SUPPORTED_TYPE_ARR, SUPPOTED_TYPE } from "@/app/lib/definations";
-import { RoughCanvas } from "roughjs/bin/canvas";
+import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE } from "@/app/lib/definations";
+import { ToolHook } from "./useTools";
+
+const SELECTED_TOOL_PADDING = 6;
 
 export type CanvasHook = {
     selectedTool: string;
@@ -14,118 +15,167 @@ export type CanvasHook = {
     toggleToolLock: () => void;
 };
 
-export default function useCanvas() {
+export default function useCanvas(tools: ToolHook) {
+    const { selectedTool, resetTool } = tools;
+
+    const elements = React.useRef<Record<string, Shape>>({});
+    const elementList = React.useRef<string[]>([]);
+
+    const [state, setState] = useState({
+        activeElementUuid: "",
+        drawing: false,
+    });
+
+    const getActiveElement = useCallback(
+        () => elements.current[state.activeElementUuid],
+        [state.activeElementUuid]
+    );
+
     const getRoughCanvas = useCallback(() => {
-        const rc = (globalThis as any).roughCanvas;
+        let rc = (globalThis as any).roughCanvas;
         if (!rc) {
             initCanvas();
+            rc = (globalThis as any).roughCanvas;
         }
-        return (globalThis as any).roughCanvas;
-    }, [(globalThis as any).roughCanvas]);
+        return rc;
+    }, []);
 
-    const elements = React.useRef<Record<string, Shape>>({}); // uuid to element mapping
-    const elementList = React.useRef<string[]>([]); // element list uuid
-    const [activeElementUuid, setActiveElementUuid] = useState("");
+    const getCursorType = () => {
+        return SUPPORTED_TYPE_ARR.includes(selectedTool) ? "crosshair" : "default";
+    };
 
-    const getActiveElement = useCallback(() => elements.current[activeElementUuid], [activeElementUuid]);
+    useEffect(() => {
+        draw();
+    }, [state, selectedTool]);
 
-    const setActiveElement = (ele: Shape) => setActiveElementUuid(ele?.uuid);
-    const resetActiveElement = () => setActiveElementUuid("");
+    const setActiveElement = (ele?: Shape) =>
+        setState(prev => ({ ...prev, activeElementUuid: ele?.uuid ?? "" }));
+
+    const startDrawing = () =>
+        setState(prev => ({ ...prev, drawing: true }));
+
+    const stopDrawing = () =>
+        setState(prev => ({ ...prev, drawing: false }));
+
+    const initCanvas = () => {
+        const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d")!;
+        const rc = rough.canvas(canvas);
+        (globalThis as any).roughCanvas = rc;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (elementList.current.length) draw();
+    };
+
+    const highlightElement = (
+        element: Shape,
+        extraOpts: Record<string, any> = {},
+        padding = SELECTED_TOOL_PADDING
+    ) => {
+        const roughCanvas = getRoughCanvas();
+        const { x1, y1, x2, y2 } = element.getAbsoluteCoords();
+
+        const highlightBox = new Shape("rectangle", x1 - padding, y1 - padding);
+        highlightBox.update(
+            { x2: x2 + padding, y2: y2 + padding },
+            { stroke: "blue", strokeWidth: 2, roughness: 0, bowing: 0, fill: null, ...extraOpts }
+        );
+
+        const roughShape = highlightBox.getRoughShape();
+        roughCanvas.draw(roughShape);
+    };
+
+    const drawActiveElement = useCallback(() => {
+        if (selectedTool !== "selection") return;
+
+        const active = getActiveElement();
+        if (!active) return;
+
+        highlightElement(active);
+    }, [getActiveElement, selectedTool]);
 
     const draw = () => {
         const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d")!;
         const roughCanvas = getRoughCanvas();
-        if (!canvas) {
-            return;
-        }
-        const ctx = canvas?.getContext("2d") as CanvasRenderingContext2D;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        elementList.current.forEach((uuid) => {
+
+        elementList.current.forEach(uuid => {
             const ele = elements.current[uuid];
-            const roughEleShape = ele.getRoughShape();
-            if (roughEleShape) {
-                roughCanvas.draw(roughEleShape);
-            } else {
-                console.warn("Unable to draw shape for element : ", ele);
-            }
+            const roughShape = ele.getRoughShape();
+
+            if (roughShape) roughCanvas.draw(roughShape);
+            else console.warn("Unable to draw shape:", ele);
         });
 
-        // Add border to active element
-        const activeElement = getActiveElement();
-        if (activeElement) {
-            const { x1, y1, x2, y2 } = activeElement.getAbsoluteCoords();
-            const activeBox = new Shape("rectangle", x1 - 10, y1 - 10);
-            activeBox.update(
-                { x2: x2 + 10, y2: y2 + 10 },
-                { stroke: "blue", strokeWidth: 1, roughness: 0, bowing: 0, fill: null }
-            );
-            const roughActiveBox = activeBox.getRoughShape();
-            roughCanvas.draw(roughActiveBox);
-        }
-    }
+        drawActiveElement();
+    };
 
-    const initCanvas = () => {
-        // Initalize canvas and rendering context
-        const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-        const rc = rough.canvas(canvas);
-        (globalThis as any).roughCanvas = rc;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (elementList.current.length) {
-            draw();
-        }
-    }
+    const addElement = (type: SUPPORTED_TYPE, x: number, y: number) => {
+        const element = new Shape(type, x, y);
 
-    const addElement = (elementType: SUPPOTED_TYPE, x: number, y: number) => {
-        const elementShape = new Shape(elementType, x, y);
-        // store in map and list
-        elements.current[elementShape.uuid] = elementShape;
-        elementList.current.push(elementShape.uuid);
-        setActiveElement(elementShape);
+        elements.current[element.uuid] = element;
+        elementList.current.push(element.uuid);
+
+        setActiveElement(element);
         draw();
-    }
+    };
 
-    // Mouse Event Handlers
-    const getViewCoords = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        // Calculate mouse coordinates after applying viewport transformations (pan/zoom)
-        const clientX = event.clientX;
-        const clientY = event.clientY;
-        return { clientX, clientY }
-    }
+    // Convert viewport → canvas coordinates (placeholder for pan/zoom logic)
+    const getViewCoords = (event: React.MouseEvent<HTMLCanvasElement>) => ({
+        clientX: event.clientX,
+        clientY: event.clientY
+    });
 
-    const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>, selectedTool: string) => {
+    const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
+
         if (SUPPORTED_TYPE_ARR.includes(selectedTool)) {
-            addElement(selectedTool as SUPPOTED_TYPE, clientX, clientY);
+            startDrawing();
+            addElement(selectedTool as SUPPORTED_TYPE, clientX, clientY);
         }
     };
 
     const mouseMove = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
+
         const element = getActiveElement();
-        if (element) {
-            element.update({
-                x2: clientX,
-                y2: clientY,
-            });
+        if (element && state.drawing) {
+            element.update({ x2: clientX, y2: clientY });
             draw();
         }
 
+        ev.currentTarget.style.cursor = getCursorType();
     };
-    const mouseUp = (resetTool: () => void) => {
-        const element = getActiveElement();
-        if (element) {
-            resetActiveElement();
-            draw();
-        }
+
+    const mouseUp = () => {
+        stopDrawing();
         resetTool();
+        draw();
+    };
+
+    const handleClick = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+        const { clientX, clientY } = getViewCoords(ev);
+
+        if (selectedTool !== "selection") return;
+
+        const clickedElement = elementList.current
+            .map(uuid => elements.current[uuid])
+            .find(ele => ele.isPointNear(clientX, clientY));
+
+        setActiveElement(clickedElement ?? undefined);
+        draw();
     };
 
     return {
         mouseDown,
         mouseMove,
         mouseUp,
+        handleClick,
     };
 }

@@ -11,8 +11,9 @@ export default function Canvas() {
     const {
         mouseDown,
         mouseMove,
-        mouseUp
-    } = useCanvas();
+        mouseUp,
+        handleClick,
+    } = useCanvas(tools);
 
     const [size, setSize] = useState({ width: 0, height: 0 });
     useEffect(() => {
@@ -30,8 +31,9 @@ export default function Canvas() {
             <ToolBar {...tools} />
             <canvas
                 onMouseMove={mouseMove}
-                onMouseDown={(ev) => mouseDown(ev, tools.selectedTool)}
-                onMouseUp={(ev) => mouseUp(tools.resetTool)}
+                onMouseDown={(ev) => mouseDown(ev)}
+                onMouseUp={(ev) => mouseUp()}
+                onClick={(ev) => handleClick(ev)}
                 width={size.width}
                 height={size.height}
                 id='canvas'

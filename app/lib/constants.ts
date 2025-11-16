@@ -79,6 +79,5 @@ const toolBarBtns: ToolButton[] = [
     },
 ];
 
-const drawableCanvasType = ["rectangle", "ellipse", "line", "arrow", "text"]
 
-export { toolBarBtns, drawableCanvasType };
+export { toolBarBtns };

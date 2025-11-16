@@ -7,6 +7,7 @@ export type ToolHook = {
     setTool: (toolName: string) => void,
     lock: boolean,
     toggleToolLock: () => void,
+    resetTool: () => void,
 }
 
 export default function useTools() {

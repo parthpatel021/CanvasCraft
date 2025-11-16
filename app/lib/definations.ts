@@ -10,5 +10,5 @@ export type ToolButton = {
     numShortcut?: number;
 };
 
-export type SUPPOTED_TYPE = "rectangle" | "ellipse" | "line" | "arrow" | "text";
+export type SUPPORTED_TYPE = "rectangle" | "ellipse" | "line" | "arrow" | "text";
 export const SUPPORTED_TYPE_ARR = ["rectangle", "ellipse", "line", "arrow", "text"]
