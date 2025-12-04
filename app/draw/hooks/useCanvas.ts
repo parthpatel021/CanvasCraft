@@ -5,6 +5,7 @@ import rough from "roughjs";
 import { Shape } from "../models/shape";
 import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE } from "@/app/lib/definations";
 import { ToolHook } from "./useTools";
+import { Data } from "../models";
 
 const SELECTED_TOOL_PADDING = 6;
 
@@ -20,6 +21,7 @@ export default function useCanvas(tools: ToolHook) {
 
     const elements = React.useRef<Record<string, Shape>>({});
     const elementList = React.useRef<string[]>([]);
+    const data = React.useRef<Data | null>(null);
 
     const [state, setState] = useState({
         activeElementUuid: "",
@@ -47,6 +49,10 @@ export default function useCanvas(tools: ToolHook) {
     useEffect(() => {
         draw();
     }, [state, selectedTool]);
+
+    useEffect(() => {
+        data.current = new Data("Demo Project");
+    }, []);
 
     const setActiveElement = (ele?: Shape) =>
         setState(prev => ({ ...prev, activeElementUuid: ele?.uuid ?? "" }));
