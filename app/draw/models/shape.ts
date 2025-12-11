@@ -1,4 +1,5 @@
-import { SUPPORTED_TYPE } from "@/app/lib/definations";
+import { checkShapeNearPoint, cursorForPosition } from './utils/computeNearPoint';
+import { RESULT_TYPES, SUPPORTED_TYPE } from "@/app/lib/definations";
 import { v4 } from "uuid";
 
 export class Shape {
@@ -92,5 +93,14 @@ export class Shape {
             return true;
         }
         return false;
+    }
+
+    checkNearPoint(x: number, y: number): RESULT_TYPES | null {
+        return checkShapeNearPoint(this, x, y);
+    }
+
+    cursorForPoint(x: number, y: number): string {
+        const nearPoint = this.checkNearPoint(x, y);
+        return nearPoint ? cursorForPosition[nearPoint] : "default";
     }
 }

@@ -42,8 +42,15 @@ export default function useCanvas(tools: ToolHook) {
         return rc;
     }, []);
 
-    const getCursorType = () => {
-        return SUPPORTED_TYPE_ARR.includes(selectedTool) ? "crosshair" : "default";
+    const getCursorType = (x: number, y: number) => {
+        if (SUPPORTED_TYPE_ARR.includes(selectedTool)) {
+            return "crosshair";
+        }
+        const activeElement = getActiveElement();
+        if (activeElement) {
+            return activeElement.cursorForPoint(x, y);
+        }
+        return "default";
     };
 
     useEffect(() => {
@@ -126,7 +133,7 @@ export default function useCanvas(tools: ToolHook) {
         const element = new Shape(type, x, y);
 
         elements.current[element.uuid] = element;
-        elementList.current.push(element.uuid);
+        elementList.current.unshift(element.uuid);
 
         setActiveElement(element);
         draw();
@@ -156,7 +163,7 @@ export default function useCanvas(tools: ToolHook) {
             draw();
         }
 
-        ev.currentTarget.style.cursor = getCursorType();
+        ev.currentTarget.style.cursor = getCursorType(clientX, clientY);
     };
 
     const mouseUp = () => {
