@@ -1,9 +1,8 @@
 "use client";
 
-import { Metadata } from "next";
-import ToolBar from "./ui/toolbar/toolbar";
-import useTools from "./hooks/useTools";
-import useCanvas from "./hooks/useCanvas";
+import ToolBar from "./ui/toolbar";
+import useTools from "../hooks/useTools";
+import useCanvas from "../hooks/useCanvas";
 import { useEffect, useState } from "react";
 
 export default function Canvas() {

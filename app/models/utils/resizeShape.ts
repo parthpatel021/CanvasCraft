@@ -36,7 +36,7 @@ const resizeLine = (currentCords: ShapeCoords, position: POSITION_TYPES, newX: n
     return coordsUpdate;
 }
 
-export const resizeShapeFromPosition = (element: Shape, position: POSITION_TYPES, newX: number, newY: number) => {
+export const resizeShape = (element: Shape, position: POSITION_TYPES, newX: number, newY: number) => {
 
     let updatedCoords: ShapeCoords = {};
     const currentCords = element.getCoords();

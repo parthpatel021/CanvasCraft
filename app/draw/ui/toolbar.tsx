@@ -2,7 +2,7 @@
 
 import { toolBarBtns } from "@/app/lib/constants";
 import ToolBarBtn from "./toolButton";
-import { ToolHook } from "../../hooks/useTools";
+import { ToolHook } from "@/app/hooks/useTools";
 
 export default function ToolBar({selectedTool, setTool}: ToolHook) {
     const handleBtnClick = (toolName: string) => {

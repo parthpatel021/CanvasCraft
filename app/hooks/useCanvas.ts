@@ -1,12 +1,25 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useState
+} from "react";
 import rough from "roughjs";
-import { resizeShapeFromPosition } from './../models/utils/resizeShape';
-import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE, ELEMENT_ACTIONS, POSITION_TYPES, offsetObj } from "@/app/lib/definations";
-import { ToolHook } from "./useTools";
-import { Data, Shape } from "../models";
-import { moveShape } from "../models/utils/moveShape";
+
+import {
+    SUPPORTED_TYPE_ARR,
+    SUPPORTED_TYPE,
+    ELEMENT_ACTIONS,
+    POSITION_TYPES,
+    offsetObj
+} from "@/app/lib/definations";
+import { ToolHook } from "@/app/hooks/useTools";
+import { Data, Shape } from "@/app/models";
+import {
+    resizeShape,
+    moveShape
+} from "@/app/models/utils";
 
 const SELECTED_TOOL_PADDING = 6;
 
@@ -223,7 +236,7 @@ export default function useCanvas(tools: ToolHook) {
         const action = state.action;
 
         if (action === "resize" && position) {
-            resizeShapeFromPosition(element, position, clientX, clientY);
+            resizeShape(element, position, clientX, clientY);
         }
         else if (action === "move") {
             moveShape(element, state.offset, clientX, clientY);
