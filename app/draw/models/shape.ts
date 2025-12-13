@@ -1,5 +1,5 @@
 import { checkShapeNearPoint, cursorForPosition } from './utils/computeNearPoint';
-import { RESULT_TYPES, SUPPORTED_TYPE } from "@/app/lib/definations";
+import { POSITION_TYPES, ShapeCoords, SUPPORTED_TYPE } from "@/app/lib/definations";
 import { v4 } from "uuid";
 
 export class Shape {
@@ -21,7 +21,7 @@ export class Shape {
         this.x2 = x1; this.y2 = y1;
     }
 
-    _updateCoords(coords: Partial<Record<'x1'|'y1'|'x2'|'y2', number>> = {}) {
+    _updateCoords(coords: ShapeCoords = {}) {
         if (coords.x1 !== undefined) {
             this.x1 = coords.x1;
         }
@@ -41,14 +41,13 @@ export class Shape {
         this.opts = {...this.opts, ...opts};
     }
 
-    update(coords: Partial<Record<'x1'|'y1'|'x2'|'y2', number>> = {}, opts: Partial<Record<string, any>> = {}) {
+    update(coords: ShapeCoords = {}, opts: Partial<Record<string, any>> = {}) {
         if (Object.keys(coords).length) {
             this._updateCoords(coords);
         }
         if (Object.keys(opts).length) {
             this._updateOpts(opts);
         }
-        // this.getRoughShape();
         const updatedShape = this.generateRoughObj();
         this.roughObj = updatedShape;
     }
@@ -79,6 +78,10 @@ export class Shape {
         return null;
     }
 
+    getCoords() {
+        return { x1: this.x1, y1: this.y1, x2: this.x2, y2: this.y2 };
+    }
+
     getAbsoluteCoords() {
         const x1 = Math.min(this.x1, this.x2);
         const y1 = Math.min(this.y1, this.y2);
@@ -95,7 +98,7 @@ export class Shape {
         return false;
     }
 
-    checkNearPoint(x: number, y: number): RESULT_TYPES | null {
+    checkNearPoint(x: number, y: number): POSITION_TYPES | null {
         return checkShapeNearPoint(this, x, y);
     }
 

@@ -2,10 +2,10 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import rough from "roughjs";
-import { Shape } from "../models/shape";
-import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE } from "@/app/lib/definations";
+import { resizeShapeFromPosition } from './../models/utils/resizeShape';
+import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE, ELEMENT_ACTIONS, POSITION_TYPES } from "@/app/lib/definations";
 import { ToolHook } from "./useTools";
-import { Data } from "../models";
+import { Data, Shape } from "../models";
 
 const SELECTED_TOOL_PADDING = 6;
 
@@ -26,6 +26,8 @@ export default function useCanvas(tools: ToolHook) {
     const [state, setState] = useState({
         activeElementUuid: "",
         drawing: false,
+        action: "none" as ELEMENT_ACTIONS,
+        offset: { x: 0, y: 0, position: null as POSITION_TYPES | null },
     });
 
     const getActiveElement = useCallback(
@@ -69,6 +71,30 @@ export default function useCanvas(tools: ToolHook) {
 
     const stopDrawing = () =>
         setState(prev => ({ ...prev, drawing: false }));
+
+    const setAction = (action: ELEMENT_ACTIONS | undefined) => {
+        if (!action) {
+            action = "none";
+        }
+        setState(prev => ({ ...prev, action }));
+    }
+
+    const getElementAtPosition = (x: number, y: number) => {
+        const elementUuid = elementList.current.find(uuid => {
+            const ele = elements.current[uuid];
+            return ele.checkNearPoint(x, y) !== null
+        });
+        return elementUuid ? elements.current[elementUuid] : null;
+    }
+
+    const setOffSetForElementResize = (
+        element: Shape,
+        position: POSITION_TYPES,
+        x: number,
+        y: number,
+    ) => {
+        setState(prev => ({ ...prev, offset: { x, y, position } }));
+    }
 
     const initCanvas = () => {
         const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
@@ -145,6 +171,26 @@ export default function useCanvas(tools: ToolHook) {
         clientY: event.clientY
     });
 
+    const handleMouseDownSelectionTool = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+        const { clientX, clientY } = getViewCoords(ev);
+        const clickedElement = getElementAtPosition(clientX, clientY);
+        if (!clickedElement) {
+            return;
+        }
+        setActiveElement(clickedElement);
+        const position = clickedElement.checkNearPoint(clientX, clientY);
+        if (!position) {
+            return;
+        }
+        if (position !== "inside") {
+            setAction("resize");
+            startDrawing();
+            setOffSetForElementResize(clickedElement, position, clientX, clientY);
+            return;
+        }
+        // TODO: Move action
+    }
+
     const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
 
@@ -152,18 +198,39 @@ export default function useCanvas(tools: ToolHook) {
             startDrawing();
             addElement(selectedTool as SUPPORTED_TYPE, clientX, clientY);
         }
+        if (selectedTool === "selection") {
+            handleMouseDownSelectionTool(ev);
+        }
     };
+
+    const handleActiveElementMouseMove = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+        const { clientX, clientY } = getViewCoords(ev);
+        const element = getActiveElement();
+        if (!element) return;
+        if (!state.drawing) return;
+        const { position } = state.offset;
+        const action = state.action;
+
+        if (action === "resize" && position) {
+            resizeShapeFromPosition(element, position, clientX, clientY);
+            return;
+        }
+        else if (action === "move") {
+            // TODO: Move logic
+        }
+        else {
+            element.update({ x2: clientX, y2: clientY });
+        }
+    }
 
     const mouseMove = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
 
-        const element = getActiveElement();
-        if (element && state.drawing) {
-            element.update({ x2: clientX, y2: clientY });
-            draw();
-        }
+        handleActiveElementMouseMove(ev);
+        draw();
 
         ev.currentTarget.style.cursor = getCursorType(clientX, clientY);
+
     };
 
     const mouseUp = () => {

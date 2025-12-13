@@ -1,4 +1,4 @@
-import { RESULT_TYPES } from "@/app/lib/definations";
+import { POSITION_TYPES } from "@/app/lib/definations";
 import { Shape } from "../shape";
 
 const THRESHOLD = 10;
@@ -12,7 +12,7 @@ const distance = (aPoint: Point, bPoint: Point) => {
     return Math.sqrt(Math.pow(bPoint.x - aPoint.x, 2) + Math.pow(bPoint.y - aPoint.y, 2));
 }
 
-const nearPoint = (x: number, y: number, x0: number, y0: number, result: RESULT_TYPES) => {
+const nearPoint = (x: number, y: number, x0: number, y0: number, result: POSITION_TYPES) => {
     const aPoint = { x: x0, y: y0 };
     const bPoint = { x, y };
     return distance(aPoint, bPoint) <= THRESHOLD ? result : null;
