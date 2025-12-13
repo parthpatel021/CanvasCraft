@@ -6,6 +6,7 @@ import {
 } from "./computeNearPoint";
 import { moveShape } from "./moveShape";
 import { resizeShape } from "./resizeShape";
+import { generateRoughShapes } from "./generateShape";
 
 export {
     checkLine,
@@ -14,4 +15,5 @@ export {
     cursorForPosition,
     moveShape,
     resizeShape,
+    generateRoughShapes,
 }

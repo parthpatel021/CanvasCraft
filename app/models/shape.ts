@@ -1,6 +1,7 @@
 import { checkShapeNearPoint, cursorForPosition } from './utils/computeNearPoint';
 import { POSITION_TYPES, ShapeCoords, SUPPORTED_TYPE } from "@/app/lib/definations";
 import { v4 } from "uuid";
+import { generateRoughShapes } from './utils';
 
 export class Shape {
     type: SUPPORTED_TYPE;
@@ -9,13 +10,13 @@ export class Shape {
     opts: Record<string, any>;
     uuid: string;
 
-    roughObj: any = null; // rough object
+    roughObj: any = []; // rough objects
 
     constructor(type: SUPPORTED_TYPE, x1: number, y1: number) {
         this.uuid = v4()
         this.type = type;
         this.x1 = x1; this.y1 = y1;
-        this.roughObj = null;
+        this.roughObj = [];
         this.opts = { stroke: 'white', strokeWidth: 2, bowing: 0, roughness: 0, fill: 'gray' };
 
         this.x2 = x1; this.y2 = y1;
@@ -48,34 +49,30 @@ export class Shape {
         if (Object.keys(opts).length) {
             this._updateOpts(opts);
         }
-        const updatedShape = this.generateRoughObj();
+        const updatedShape = this.generateRoughObjs();
         this.roughObj = updatedShape;
     }
 
-    getRoughShape() {
-        if (!this.roughObj) {
-            this.roughObj = this.generateRoughObj();
+    getRoughShapes() {
+        if (!this.roughObj.length) {
+            this.roughObj = this.generateRoughObjs();
         }
         return this.roughObj;
     }
 
-    generateRoughObj(): any {
+    generateRoughObjs(): any[] {
         const rc = (globalThis as any).roughCanvas;
         const generator = rc.generator;
-        if (this.type === "rectangle") {
-            return generator.rectangle(this.x1, this.y1, this.x2-this.x1, this.y2-this.y1, this.opts);
+        return generateRoughShapes(this, generator);
+    }
+
+    draw(roughCanvas: any) {
+        const roughShapes = this.getRoughShapes();
+        if (!roughShapes.length) {
+            console.warn("Unable to draw shape:", this);
+            return;
         }
-        if (this.type === "ellipse") {
-            const centerX = (this.x1 + this.x2) / 2;
-            const centerY = (this.y1 + this.y2) / 2;
-            const widthX = this.x2 - this.x1;
-            const widthY = this.y2 - this.y1;
-            return generator.ellipse(centerX, centerY, widthX, widthY, this.opts);
-        }
-        if (this.type === "line" || this.type === "arrow") {
-            return generator.line(this.x1, this.y1, this.x2, this.y2, this.opts);
-        }
-        return null;
+        roughShapes.forEach((shape: any) => roughCanvas.draw(shape));
     }
 
     getCoords() {

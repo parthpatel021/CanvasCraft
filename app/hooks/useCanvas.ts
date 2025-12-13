@@ -146,8 +146,8 @@ export default function useCanvas(tools: ToolHook) {
             { stroke: "blue", strokeWidth: 2, roughness: 0, bowing: 0, fill: null, ...extraOpts }
         );
 
-        const roughShape = highlightBox.getRoughShape();
-        roughCanvas.draw(roughShape);
+        const roughShapes = highlightBox.getRoughShapes();
+        roughCanvas.draw(roughShapes[0]);
     };
 
     const drawActiveElement = useCallback(() => {
@@ -170,10 +170,7 @@ export default function useCanvas(tools: ToolHook) {
 
         elementList.current.forEach(uuid => {
             const ele = elements.current[uuid];
-            const roughShape = ele.getRoughShape();
-
-            if (roughShape) roughCanvas.draw(roughShape);
-            else console.warn("Unable to draw shape:", ele);
+            ele.draw(roughCanvas);
         });
 
         drawActiveElement();
@@ -260,6 +257,7 @@ export default function useCanvas(tools: ToolHook) {
     const mouseUp = () => {
         stopDrawing();
         resetOffset();
+        setAction("none");
         resetTool();
         draw();
     };
