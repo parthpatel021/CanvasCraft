@@ -20,3 +20,5 @@ export const POSITION_TYPES_ARR: POSITION_TYPES[] = ["inside", "start", "end", "
 
 export type ELEMENT_ACTIONS = "move" | "resize" | "none";
 export const ELEMENT_ACTIONS_ARR: ELEMENT_ACTIONS[] = ["move", "resize", "none"];
+
+export type offsetObj = { x: number; y: number; position: POSITION_TYPES | null };

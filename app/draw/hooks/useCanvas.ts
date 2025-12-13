@@ -3,9 +3,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import rough from "roughjs";
 import { resizeShapeFromPosition } from './../models/utils/resizeShape';
-import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE, ELEMENT_ACTIONS, POSITION_TYPES } from "@/app/lib/definations";
+import { SUPPORTED_TYPE_ARR, SUPPORTED_TYPE, ELEMENT_ACTIONS, POSITION_TYPES, offsetObj } from "@/app/lib/definations";
 import { ToolHook } from "./useTools";
 import { Data, Shape } from "../models";
+import { moveShape } from "../models/utils/moveShape";
 
 const SELECTED_TOOL_PADDING = 6;
 
@@ -15,6 +16,8 @@ export type CanvasHook = {
     lock: boolean;
     toggleToolLock: () => void;
 };
+
+const defaultOffset: offsetObj = { x: 0, y: 0, position: null };
 
 export default function useCanvas(tools: ToolHook) {
     const { selectedTool, resetTool } = tools;
@@ -27,7 +30,7 @@ export default function useCanvas(tools: ToolHook) {
         activeElementUuid: "",
         drawing: false,
         action: "none" as ELEMENT_ACTIONS,
-        offset: { x: 0, y: 0, position: null as POSITION_TYPES | null },
+        offset: defaultOffset,
     });
 
     const getActiveElement = useCallback(
@@ -72,6 +75,9 @@ export default function useCanvas(tools: ToolHook) {
     const stopDrawing = () =>
         setState(prev => ({ ...prev, drawing: false }));
 
+    const resetOffset = () => 
+        setState(prev => ({ ...prev, offset: defaultOffset }));
+
     const setAction = (action: ELEMENT_ACTIONS | undefined) => {
         if (!action) {
             action = "none";
@@ -93,7 +99,12 @@ export default function useCanvas(tools: ToolHook) {
         x: number,
         y: number,
     ) => {
-        setState(prev => ({ ...prev, offset: { x, y, position } }));
+        // Offset is difference between mouse coords and shape (x1, y1) coords at the position
+        // By keeping the offset same during move, we can ensure the shape moves correctly
+        const { x1, y1 } = element.getCoords();
+        const offsetX = x1 - x;
+        const offsetY = y1 - y;
+        setState(prev => ({ ...prev, offset: { x: offsetX, y: offsetY, position } }));
     }
 
     const initCanvas = () => {
@@ -182,13 +193,13 @@ export default function useCanvas(tools: ToolHook) {
         if (!position) {
             return;
         }
-        if (position !== "inside") {
+        startDrawing();
+        setOffSetForElementResize(clickedElement, position, clientX, clientY);
+        if (position == "inside") {
+            setAction("move");
+        } else {
             setAction("resize");
-            startDrawing();
-            setOffSetForElementResize(clickedElement, position, clientX, clientY);
-            return;
         }
-        // TODO: Move action
     }
 
     const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>) => {
@@ -213,12 +224,12 @@ export default function useCanvas(tools: ToolHook) {
 
         if (action === "resize" && position) {
             resizeShapeFromPosition(element, position, clientX, clientY);
-            return;
         }
         else if (action === "move") {
-            // TODO: Move logic
+            moveShape(element, state.offset, clientX, clientY);
         }
         else {
+            // Drawing new shape
             element.update({ x2: clientX, y2: clientY });
         }
     }
@@ -235,6 +246,7 @@ export default function useCanvas(tools: ToolHook) {
 
     const mouseUp = () => {
         stopDrawing();
+        resetOffset();
         resetTool();
         draw();
     };
