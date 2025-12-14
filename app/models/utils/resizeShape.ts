@@ -2,7 +2,7 @@ import { POSITION_TYPES, ShapeCoords } from '@/app/lib/definations';
 import { Shape } from './../shape';
 
 
-const hasRectangleCoords = (ele: Shape) => ["rectangle", "ellipse"].includes(ele.type);
+const hasRectangleCoords = (ele: Shape) => ["rectangle", "ellipse", "text"].includes(ele.type);
 const hasLineCoords = (ele: Shape) => ["line", "arrow"].includes(ele.type);
 
 const resizeRectangle = (currentCords: ShapeCoords, position: POSITION_TYPES, newX: number, newY: number) => {

@@ -3,6 +3,8 @@ import { POSITION_TYPES, ShapeCoords, SUPPORTED_TYPE } from "@/app/lib/definatio
 import { v4 } from "uuid";
 import { generateRoughShapes } from './utils';
 
+const SELECTED_TOOL_PADDING = 6;
+
 export class Shape {
     type: SUPPORTED_TYPE;
     x1: number; y1: number;
@@ -73,6 +75,17 @@ export class Shape {
             return;
         }
         roughShapes.forEach((shape: any) => roughCanvas.draw(shape));
+    }
+
+    highlightActiveElement(roughCanvas: any) {
+        const { x1, y1, x2, y2 } = this.getAbsoluteCoords();
+
+        const highlightBox = new Shape("rectangle", x1 - SELECTED_TOOL_PADDING, y1 - SELECTED_TOOL_PADDING);
+        highlightBox.update(
+            { x2: x2 + SELECTED_TOOL_PADDING, y2: y2 + SELECTED_TOOL_PADDING },
+            { stroke: "blue", strokeWidth: 2, roughness: 0, bowing: 0, fill: null }
+        );
+        highlightBox.draw(roughCanvas);
     }
 
     getCoords() {

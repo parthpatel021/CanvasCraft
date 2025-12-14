@@ -13,6 +13,7 @@ export {
     checkRect,
     checkShapeNearPoint,
     cursorForPosition,
+
     moveShape,
     resizeShape,
     generateRoughShapes,

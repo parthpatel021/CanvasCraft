@@ -1,4 +1,4 @@
-import { Shape, Project } from ".";
+import { ShapeType, Project } from ".";
 
 const IndexedDBStores: {name: string, options?: IDBObjectStoreParameters}[] = [
     { name: "shape", options: { keyPath: "uuid" } },
@@ -7,7 +7,7 @@ const IndexedDBStores: {name: string, options?: IDBObjectStoreParameters}[] = [
 
 export class Data {
     project: Project;
-    shapes: Record<string, Shape> = {};
+    shapes: Record<string, ShapeType> = {};
 
     constructor(projectName?: string) {
         const projectNameFinal = projectName || 'Untitled Project - ' + new Date().toISOString();

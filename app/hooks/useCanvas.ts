@@ -15,13 +15,12 @@ import {
     offsetObj
 } from "@/app/lib/definations";
 import { ToolHook } from "@/app/hooks/useTools";
-import { Data, Shape } from "@/app/models";
+import { Data, Shape, ShapeType, TextShape } from "@/app/models";
 import {
     resizeShape,
-    moveShape
+    moveShape,
 } from "@/app/models/utils";
 
-const SELECTED_TOOL_PADDING = 6;
 
 export type CanvasHook = {
     selectedTool: string;
@@ -35,7 +34,7 @@ const defaultOffset: offsetObj = { x: 0, y: 0, position: null };
 export default function useCanvas(tools: ToolHook) {
     const { selectedTool, resetTool } = tools;
 
-    const elements = React.useRef<Record<string, Shape>>({});
+    const elements = React.useRef<Record<string, ShapeType>>({});
     const elementList = React.useRef<string[]>([]);
     const data = React.useRef<Data | null>(null);
 
@@ -79,7 +78,7 @@ export default function useCanvas(tools: ToolHook) {
         data.current = new Data("Demo Project");
     }, []);
 
-    const setActiveElement = (ele?: Shape) =>
+    const setActiveElement = (ele?: ShapeType) =>
         setState(prev => ({ ...prev, activeElementUuid: ele?.uuid ?? "" }));
 
     const startDrawing = () =>
@@ -91,12 +90,8 @@ export default function useCanvas(tools: ToolHook) {
     const resetOffset = () => 
         setState(prev => ({ ...prev, offset: defaultOffset }));
 
-    const setAction = (action: ELEMENT_ACTIONS | undefined) => {
-        if (!action) {
-            action = "none";
-        }
+    const setAction = (action: ELEMENT_ACTIONS) =>
         setState(prev => ({ ...prev, action }));
-    }
 
     const getElementAtPosition = (x: number, y: number) => {
         const elementUuid = elementList.current.find(uuid => {
@@ -107,7 +102,7 @@ export default function useCanvas(tools: ToolHook) {
     }
 
     const setOffSetForElementResize = (
-        element: Shape,
+        element: ShapeType,
         position: POSITION_TYPES,
         x: number,
         y: number,
@@ -132,31 +127,14 @@ export default function useCanvas(tools: ToolHook) {
         if (elementList.current.length) draw();
     };
 
-    const highlightElement = (
-        element: Shape,
-        extraOpts: Record<string, any> = {},
-        padding = SELECTED_TOOL_PADDING
-    ) => {
-        const roughCanvas = getRoughCanvas();
-        const { x1, y1, x2, y2 } = element.getAbsoluteCoords();
-
-        const highlightBox = new Shape("rectangle", x1 - padding, y1 - padding);
-        highlightBox.update(
-            { x2: x2 + padding, y2: y2 + padding },
-            { stroke: "blue", strokeWidth: 2, roughness: 0, bowing: 0, fill: null, ...extraOpts }
-        );
-
-        const roughShapes = highlightBox.getRoughShapes();
-        roughCanvas.draw(roughShapes[0]);
-    };
-
     const drawActiveElement = useCallback(() => {
         if (selectedTool !== "selection") return;
+        const roughCanvas = getRoughCanvas();
 
         const active = getActiveElement();
         if (!active) return;
 
-        highlightElement(active);
+        active.highlightActiveElement(roughCanvas);
     }, [getActiveElement, selectedTool]);
 
     const draw = () => {
@@ -177,8 +155,12 @@ export default function useCanvas(tools: ToolHook) {
     };
 
     const addElement = (type: SUPPORTED_TYPE, x: number, y: number) => {
-        const element = new Shape(type, x, y);
-
+        let element : ShapeType | null = null;
+        if (type === "text") {
+            element = new TextShape(x, y);
+        } else {
+            element = new Shape(type, x, y);
+        }
         elements.current[element.uuid] = element;
         elementList.current.unshift(element.uuid);
 
@@ -214,9 +196,15 @@ export default function useCanvas(tools: ToolHook) {
 
     const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
-
+        if (state.action == "write") {
+            return;
+        }
         if (SUPPORTED_TYPE_ARR.includes(selectedTool)) {
-            startDrawing();
+            if (selectedTool === "text") {
+                setAction("write");
+            } else {
+                startDrawing();
+            }
             addElement(selectedTool as SUPPORTED_TYPE, clientX, clientY);
         }
         if (selectedTool === "selection") {
@@ -254,31 +242,49 @@ export default function useCanvas(tools: ToolHook) {
 
     };
 
-    const mouseUp = () => {
-        stopDrawing();
+    const mouseUp = (ev: React.MouseEvent<HTMLCanvasElement>) => {
+        const { clientX, clientY } = getViewCoords(ev);
+
         resetOffset();
+        if (state.action === "write") {
+            return;
+        }
+        stopDrawing();
         setAction("none");
         resetTool();
         draw();
+        ev.currentTarget.style.cursor = getCursorType(clientX, clientY);
     };
 
     const handleClick = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
-
-        if (selectedTool !== "selection") return;
-
-        const clickedElement = elementList.current
-            .map(uuid => elements.current[uuid])
-            .find(ele => ele.isPointNear(clientX, clientY));
-
-        setActiveElement(clickedElement ?? undefined);
+        if (selectedTool == "selection") {
+            const clickedElement = elementList.current
+                .map(uuid => elements.current[uuid])
+                .find(ele => ele.isPointNear(clientX, clientY));
+            setActiveElement(clickedElement ?? undefined);
+        }
         draw();
     };
 
+    const handleBlur = (ev: React.FocusEvent<HTMLTextAreaElement>) => {
+        const element = getActiveElement();
+        if (element && element instanceof TextShape) {
+            element.updateText(ev.target.value);
+            setActiveElement();
+            setAction('none');
+            resetTool();
+            draw();
+        }
+    }
+
     return {
+        state,
+        getActiveElement,
         mouseDown,
         mouseMove,
         mouseUp,
         handleClick,
+        handleBlur,
     };
 }

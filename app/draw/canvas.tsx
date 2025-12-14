@@ -1,17 +1,21 @@
 "use client";
 
-import ToolBar from "./ui/toolbar";
 import useTools from "../hooks/useTools";
 import useCanvas from "../hooks/useCanvas";
 import { useEffect, useState } from "react";
 
+import { TextAreaInput, ToolBar } from "./ui"
+
 export default function Canvas() {
     const tools = useTools();
     const {
+        state,
+        getActiveElement,
         mouseDown,
         mouseMove,
         mouseUp,
         handleClick,
+        handleBlur,
     } = useCanvas(tools);
 
     const [size, setSize] = useState({ width: 0, height: 0 });
@@ -31,12 +35,18 @@ export default function Canvas() {
             <canvas
                 onMouseMove={mouseMove}
                 onMouseDown={(ev) => mouseDown(ev)}
-                onMouseUp={(ev) => mouseUp()}
+                onMouseUp={(ev) => mouseUp(ev)}
                 onClick={(ev) => handleClick(ev)}
                 width={size.width}
                 height={size.height}
                 id='canvas'
             >Drawing Canvas</canvas>
+            {state.action === "write" &&
+                <TextAreaInput
+                    getElement={getActiveElement}
+                    onBlur={handleBlur}
+                />
+            }
         </div>
     );
 }
