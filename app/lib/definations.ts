@@ -25,3 +25,10 @@ export type offsetObj = { x: number; y: number; position: POSITION_TYPES | null 
 
 export type FONT_FAMILIES_TYPE = "Arial";
 export const FONT_FAMILIES_ARR = ["Arial"];
+
+export type SHAPE_ACTION_OPTION_TYPES = "strokeColor" | "fillColor" | "fillType" | "strokeWidth" | "strokeStyle" | "slopiness";
+export type ShapeOption = {
+    title: string;
+    values: any[];
+    key: SHAPE_ACTION_OPTION_TYPES;
+}

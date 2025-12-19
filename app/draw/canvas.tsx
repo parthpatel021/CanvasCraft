@@ -4,7 +4,7 @@ import useTools from "../hooks/useTools";
 import useCanvas from "../hooks/useCanvas";
 import { useEffect, useState } from "react";
 
-import { TextAreaInput, ToolBar } from "./ui"
+import { ShapeAction, TextAreaInput, ToolBar } from "./ui"
 
 export default function Canvas() {
     const tools = useTools();
@@ -47,6 +47,7 @@ export default function Canvas() {
                     onBlur={handleBlur}
                 />
             }
+            <ShapeAction getElement={getActiveElement} />
         </div>
     );
 }
