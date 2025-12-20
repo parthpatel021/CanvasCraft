@@ -1,9 +1,19 @@
 import { checkShapeNearPoint, cursorForPosition } from './utils/computeNearPoint';
-import { POSITION_TYPES, ShapeCoords, SUPPORTED_TYPE } from "@/app/lib/definations";
+import { POSITION_TYPES, ShapeCoords, ShapeOptions, SUPPORTED_TYPE } from "@/app/lib/definations";
 import { v4 } from "uuid";
 import { generateRoughShapes } from './utils';
 
 const SELECTED_TOOL_PADDING = 6;
+
+let default_opts: ShapeOptions = {
+    stroke: '#eee',
+    strokeWidth: 2,
+    bowing: 0,
+    roughness: 0,
+    fill: 'transparent',
+    fillStyle: 'solid',
+    strokeStyle: 'solid',
+}
 
 export class Shape {
     type: SUPPORTED_TYPE;
@@ -19,7 +29,7 @@ export class Shape {
         this.type = type;
         this.x1 = x1; this.y1 = y1;
         this.roughObj = [];
-        this.opts = { stroke: 'white', strokeWidth: 2, bowing: 0, roughness: 0, fill: 'gray' };
+        this.opts = { ...default_opts };
 
         this.x2 = x1; this.y2 = y1;
     }
@@ -41,7 +51,8 @@ export class Shape {
     }
 
     _updateOpts(opts: Partial<Record<string, any>> = {}) {
-        this.opts = {...this.opts, ...opts};
+        this.opts = { ...this.opts, ...opts };
+        default_opts = { ...this.opts } as ShapeOptions;
     }
 
     update(coords: ShapeCoords = {}, opts: Partial<Record<string, any>> = {}) {
@@ -81,9 +92,18 @@ export class Shape {
         const { x1, y1, x2, y2 } = this.getAbsoluteCoords();
 
         const highlightBox = new Shape("rectangle", x1 - SELECTED_TOOL_PADDING, y1 - SELECTED_TOOL_PADDING);
+        highlightBox.opts = { 
+            ...highlightBox.opts, 
+            stroke: "blue",
+            strokeWidth: 2,
+            roughness: 0,
+            bowing: 0,
+            fill: 'transparent',
+            fillStyle: 'solid',
+            strokeStyle: 'solid',
+        }
         highlightBox.update(
-            { x2: x2 + SELECTED_TOOL_PADDING, y2: y2 + SELECTED_TOOL_PADDING },
-            { stroke: "blue", strokeWidth: 2, roughness: 0, bowing: 0, fill: null }
+            { x2: x2 + SELECTED_TOOL_PADDING, y2: y2 + SELECTED_TOOL_PADDING }
         );
         highlightBox.draw(roughCanvas);
     }

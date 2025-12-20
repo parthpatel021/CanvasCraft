@@ -1,11 +1,19 @@
 import { Shape } from "../shape";
 
+const getShapeOptions = (element: Shape) => {
+    const opts = {...element.opts};
+    if (element.opts.strokeStyle && element.opts.strokeStyle !== 'solid') {
+        opts['strokeLineDash'] = element.opts.strokeStyle === 'dashed' ? [10, 5] : [2, 6];
+    }
+    return opts;
+}
+
 const rectangleGenerator = (element: Shape, generator: any) => {
     const { x1, y1, x2, y2 } = element.getCoords();
     const width = x2! - x1!;
     const height = y2! - y1!;
     return [
-        generator.rectangle(x1!, y1!, width, height, element.opts)
+        generator.rectangle(x1!, y1!, width, height, getShapeOptions(element))
     ];
 }
 
@@ -16,14 +24,14 @@ const ellipseGenerator = (element: Shape, generator: any) => {
     const width = x2! - x1!;
     const height = y2! - y1!;
     return [
-        generator.ellipse(centerX, centerY, width, height, element.opts)
+        generator.ellipse(centerX, centerY, width, height, getShapeOptions(element))
     ];
 }
 
 const lineGenerator = (element: Shape, generator: any) => {
     const { x1, y1, x2, y2 } = element.getCoords();
     return [
-        generator.line(x1!, y1!, x2!, y2!, element.opts)
+        generator.line(x1!, y1!, x2!, y2!, getShapeOptions(element))
     ];
 }
 
@@ -42,8 +50,7 @@ const arrowGenerator = (element: Shape, generator: any) => {
 
     // Define the path command string for Rough.js (SVG path format)
     const pathData = `M ${x1} ${y1} L ${x2} ${y2} M ${x2} ${y2} L ${point1X} ${point1Y} M ${x2} ${y2} L ${point2X} ${point2Y}`;
-    generator.path(pathData, element.opts);
-    return [generator.path(pathData, element.opts)];
+    return [generator.path(pathData, getShapeOptions(element))];
 }
 
 const generators: Record<string, Function> = {

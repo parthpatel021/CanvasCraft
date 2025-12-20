@@ -5,7 +5,7 @@ type StrokeStyle = "solid" | "dashed" | "dotted";
 type StrokeStyleOptionProps = {
     values: StrokeStyle[];
     activeValue: StrokeStyle;
-    onChange?: (val: StrokeStyle) => void;
+    onChange: (val: StrokeStyle) => void;
 };
 
 function StrokeStylePreview({ style }: { style: StrokeStyle }) {
@@ -43,8 +43,8 @@ export default function StrokeStyleOption({
                 {values.map((style) => (
                     <div
                         key={style}
-                        onClick={() => onChange?.(style)}
-                        className={`w-8 h-8 rounded cursor-pointer flex items-center justify-center border ${style === activeValue ? "border-white" : "border-neutral-700"}`}
+                        onClick={() => onChange(style)}
+                        className={`w-8 h-8 hover:cursor-pointer rounded cursor-pointer flex items-center justify-center border ${style === activeValue ? "border-white" : "border-neutral-700"}`}
                     >
                         <svg width="24" height="24" viewBox="0 0 20 20">
                             <StrokeStylePreview style={style} />

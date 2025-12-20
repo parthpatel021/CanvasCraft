@@ -286,5 +286,6 @@ export default function useCanvas(tools: ToolHook) {
         mouseUp,
         handleClick,
         handleBlur,
+        draw,
     };
 }

@@ -1,7 +1,7 @@
 type FillTypeOptionProps = {
     values: string[];
     activeValue: string;
-    onChange?: (val: string) => void;
+    onChange: (val: string) => void;
 };
 
 function FillPreview({ type }: { type: string }) {
@@ -47,8 +47,8 @@ export default function FillTypeOption({
                 {values.map((fillType) => (
                     <div
                         key={fillType}
-                        onClick={() => onChange?.(fillType)}
-                        className={`w-7 h-7 rounded cursor-pointer flex items-center justify-center border ${fillType === activeValue ? "border-white" : "border-neutral-700"}`}
+                        onClick={() => onChange(fillType)}
+                        className={`w-7 h-7 hover:cursor-pointer rounded cursor-pointer flex items-center justify-center border ${fillType === activeValue ? "border-white" : "border-neutral-700"}`}
                     >
                         <svg width="28" height="28" viewBox="0 0 20 20">
                             <FillPreview type={fillType} />

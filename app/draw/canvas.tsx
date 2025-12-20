@@ -16,6 +16,7 @@ export default function Canvas() {
         mouseUp,
         handleClick,
         handleBlur,
+        draw,
     } = useCanvas(tools);
 
     const [size, setSize] = useState({ width: 0, height: 0 });
@@ -47,7 +48,7 @@ export default function Canvas() {
                     onBlur={handleBlur}
                 />
             }
-            <ShapeAction getElement={getActiveElement} />
+            <ShapeAction getElement={getActiveElement} draw={draw} />
         </div>
     );
 }

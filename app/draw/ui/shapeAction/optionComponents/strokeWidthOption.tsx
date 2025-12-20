@@ -5,7 +5,7 @@ type StrokeWidth = 2 | 4 | 6;
 type StrokeWidthOptionProps = {
     values: StrokeWidth[];
     activeValue: StrokeWidth;
-    onChange?: (val: StrokeWidth) => void;
+    onChange: (val: StrokeWidth) => void;
 };
 
 function StrokePreview({ width }: { width: StrokeWidth }) {
@@ -32,8 +32,8 @@ export default function StrokeWidthOption({
                 {values.map((strokeWidth) => (
                     <div
                         key={strokeWidth}
-                        onClick={() => onChange?.(strokeWidth)}
-                        className={`w-8 h-8 rounded cursor-pointer flex items-center justify-center border ${strokeWidth === activeValue ? "border-white" : "border-neutral-700" }`}
+                        onClick={() => onChange(strokeWidth)}
+                        className={`w-8 h-8 hover:cursor-pointer rounded cursor-pointer flex items-center justify-center border ${strokeWidth === activeValue ? "border-white" : "border-neutral-700" }`}
                     >
                         <svg width="24" height="24" viewBox="0 0 20 20">
                             <StrokePreview width={strokeWidth} />

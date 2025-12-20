@@ -1,42 +1,43 @@
-import { SHAPE_ACTION_OPTION_TYPES, ShapeOption, SUPPORTED_TYPE } from "@/app/lib/definations";
+import { SHAPE_ACTION_OPTION_TYPES, ShapeOption } from "@/app/lib/definations";
+import { ShapeType } from "..";
 
-const STROKE_COLORS = ["#1e1e1e", "#e03131", "#2f9e44", "#1971c2", "#f08c00",];
+const STROKE_COLORS = ["#eee", "#e03131", "#2f9e44", "#1971c2", "#f08c00",];
 const FILL_COLORS = ["transparent", "#ffc9c9", "#b2f2bb", "#a5d8ff", "#ffec99",];
 const FILL_TYPES = ["solid", "zigzag", "cross-hatch", "dots"];
 const STROKE_WIDTHS = [2, 4, 6,];
 const STROKE_STYLES = ["solid", "dashed", "dotted"];
 const SLOPINESS = [0, 0.1, 0.2];
 
-export const hasFillColor = (shapeType: SUPPORTED_TYPE) => [
+export const hasFillColor = (shape: ShapeType) => [
     "rectangle",
     "ellipse"
-].includes(shapeType);
+].includes(shape.type);
 
-export const hasFillType = (shapeType: SUPPORTED_TYPE) => [
+export const hasFillType = (shape: ShapeType) => [
     "rectangle",
     "ellipse"
-].includes(shapeType);
+].includes(shape.type) && shape.opts.fill !== 'transparent';
 
-export const hasStrokeWidth = (shapeType: SUPPORTED_TYPE) => [
+export const hasStrokeWidth = (shape: ShapeType) => [
     "rectangle",
     "ellipse",
     "line",
     "arrow"
-].includes(shapeType);
+].includes(shape.type);
 
-export const hasStrokeStyle = (shapeType: SUPPORTED_TYPE) => [
+export const hasStrokeStyle = (shape: ShapeType) => [
     "rectangle",
     "ellipse",
     "line",
     "arrow"
-].includes(shapeType);
+].includes(shape.type);
 
-export const hasSlopiness = (shapeType: SUPPORTED_TYPE) => [
+export const hasSlopiness = (shape: ShapeType) => [
     "rectangle",
     "ellipse",
     "line",
     "arrow"
-].includes(shapeType);
+].includes(shape.type);
 
 
 export const OPTION_VALUES: Record<SHAPE_ACTION_OPTION_TYPES, any[]> = {
@@ -68,6 +69,15 @@ export const AVAILABLE_SHAPE_OPTIONS: Record<SHAPE_ACTION_OPTION_TYPES, string> 
     // opacity: 'Opacity',
 };
 
+export const SHAPE_KEY_MAPPING: Record<SHAPE_ACTION_OPTION_TYPES, string> = {
+    strokeColor: "stroke",
+    fillColor: "fill",
+    fillType: "fillStyle",
+    strokeWidth: "strokeWidth",
+    strokeStyle: "strokeStyle",
+    slopiness: "roughness",
+}
+
 export const shapeAvailabilityCheckers: Record<SHAPE_ACTION_OPTION_TYPES, Function> = {
     strokeColor: () => true,
     fillColor: hasFillColor,
@@ -79,10 +89,10 @@ export const shapeAvailabilityCheckers: Record<SHAPE_ACTION_OPTION_TYPES, Functi
 
 export const AVAILABLE_SHAPE_OPTIONS_KEYS: SHAPE_ACTION_OPTION_TYPES[] = Object.keys(AVAILABLE_SHAPE_OPTIONS) as SHAPE_ACTION_OPTION_TYPES[];
 
-export const getAvailableOptionsForShape = (shapeType: SUPPORTED_TYPE) => {
+export const getAvailableOptionsForShape = (shape: ShapeType) => {
     const availableOptions: ShapeOption[] = [];
     for (const key of AVAILABLE_SHAPE_OPTIONS_KEYS) {
-        if (shapeAvailabilityCheckers[key]?.(shapeType)) {
+        if (shapeAvailabilityCheckers[key]?.(shape)) {
             availableOptions.push({
                 title: AVAILABLE_SHAPE_OPTIONS[key],
                 values: OPTION_VALUES[key],

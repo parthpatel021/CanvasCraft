@@ -32,3 +32,13 @@ export type ShapeOption = {
     values: any[];
     key: SHAPE_ACTION_OPTION_TYPES;
 }
+
+export interface ShapeOptions {
+    stroke: string;
+    strokeWidth: number;
+    bowing: number;
+    roughness: number;
+    fill: string;
+    fillStyle: string;
+    strokeStyle: string;
+}
