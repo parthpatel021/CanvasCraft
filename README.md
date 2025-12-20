@@ -5,7 +5,7 @@ CanvasCraft is a React-based drawing application that allows users to create sha
 CanvasCraft also supports session sharing for real-time collaboration. Users can generate a session link to invite others to join the same drawing session, encouraging teamwork and creative collaboration.
 
 **Current Development Deployment:**
-[https://canvas-craft-mqme7a35s-parth-patels-projects-bee93b1e.vercel.app/](https://canvas-craft-mqme7a35s-parth-patels-projects-bee93b1e.vercel.app/)
+[https://canvas-craft-psi.vercel.app/](https://canvas-craft-psi.vercel.app/)
 
 **Old Deployment:**
 [https://canvascraft.onrender.com/](https://canvascraft.onrender.com/)
