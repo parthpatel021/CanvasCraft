@@ -20,7 +20,7 @@ export default function useTools() {
     const toggleToolLock = () => setLock((prev: boolean) => !prev);
 
     const resetTool = () => {
-        if (lock) return;
+        if (lock || selectedTool === "hand") return;
         setSelectedTool("selection");
         setLock(false);
     }

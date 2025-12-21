@@ -37,6 +37,8 @@ export default function useCanvas(tools: ToolHook) {
     const elements = React.useRef<Record<string, ShapeType>>({});
     const elementList = React.useRef<string[]>([]);
     const data = React.useRef<Data | null>(null);
+    const panOffset = React.useRef({ x: 0, y: 0 });
+    const startPanMousePosition = React.useRef({ x: 0, y: 0 });
 
     const [state, setState] = useState({
         activeElementUuid: "",
@@ -60,6 +62,9 @@ export default function useCanvas(tools: ToolHook) {
     }, []);
 
     const getCursorType = (x: number, y: number) => {
+        if (selectedTool === "hand" || state.action === "pan") {
+            return "hand";
+        }
         if (SUPPORTED_TYPE_ARR.includes(selectedTool)) {
             return "crosshair";
         }
@@ -146,12 +151,18 @@ export default function useCanvas(tools: ToolHook) {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Apply pan offset transformation
+        ctx.save();
+        // console.log('Pan Offset:', panOffset.current);
+        ctx.translate(panOffset.current.x, panOffset.current.y);
+
         elementList.current.forEach(uuid => {
             const ele = elements.current[uuid];
             ele.draw(roughCanvas);
         });
 
         drawActiveElement();
+        ctx.restore();
     };
 
     const addElement = (type: SUPPORTED_TYPE, x: number, y: number) => {
@@ -170,14 +181,18 @@ export default function useCanvas(tools: ToolHook) {
 
     // Convert viewport → canvas coordinates (placeholder for pan/zoom logic)
     const getViewCoords = (event: React.MouseEvent<HTMLCanvasElement>) => ({
-        clientX: event.clientX,
-        clientY: event.clientY
+        clientX: event.clientX - panOffset.current.x,
+        clientY: event.clientY - panOffset.current.y,
     });
 
     const handleMouseDownSelectionTool = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
+
         const clickedElement = getElementAtPosition(clientX, clientY);
-        if (!clickedElement) {
+        console.log("selected Tool:", selectedTool);
+        if (selectedTool === "hand" || !clickedElement) {
+            // Start panning if no element clicked
+            startPanning(ev.clientX, ev.clientY);
             return;
         }
         setActiveElement(clickedElement);
@@ -192,6 +207,13 @@ export default function useCanvas(tools: ToolHook) {
         } else {
             setAction("resize");
         }
+    }
+
+    const startPanning = (x: number, y: number) => {
+        setActiveElement();
+        startPanMousePosition.current = { x, y };
+        startDrawing();
+        setAction("pan");
     }
 
     const mouseDown = (ev: React.MouseEvent<HTMLCanvasElement>) => {
@@ -210,15 +232,27 @@ export default function useCanvas(tools: ToolHook) {
         if (selectedTool === "selection") {
             handleMouseDownSelectionTool(ev);
         }
+        if (selectedTool === "hand") {
+            startPanning(ev.clientX, ev.clientY);
+        }
     };
 
     const handleActiveElementMouseMove = (ev: React.MouseEvent<HTMLCanvasElement>) => {
         const { clientX, clientY } = getViewCoords(ev);
         const element = getActiveElement();
+
+        const action = state.action;
+        if (action === "pan") {
+            const deltaX = clientX - startPanMousePosition.current.x;
+            const deltaY = clientY - startPanMousePosition.current.y;
+
+            panOffset.current.x += deltaX;
+            panOffset.current.y += deltaY;
+        }
+
         if (!element) return;
         if (!state.drawing) return;
         const { position } = state.offset;
-        const action = state.action;
 
         if (action === "resize" && position) {
             resizeShape(element, position, clientX, clientY);

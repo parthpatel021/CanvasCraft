@@ -18,8 +18,8 @@ export const SUPPORTED_TYPE_ARR = ["rectangle", "ellipse", "line", "arrow", "tex
 export type POSITION_TYPES = "inside" | "start" | "end" | "tl" | "tr" | "bl" | "br" ;
 export const POSITION_TYPES_ARR: POSITION_TYPES[] = ["inside", "start", "end", "tl", "tr", "bl", "br"];
 
-export type ELEMENT_ACTIONS = "move" | "resize" | "write" | "none";
-export const ELEMENT_ACTIONS_ARR: ELEMENT_ACTIONS[] = ["move", "resize", "write", "none"];
+export type ELEMENT_ACTIONS = "move" | "resize" | "write" | "none" | "pan";
+export const ELEMENT_ACTIONS_ARR: ELEMENT_ACTIONS[] = ["move", "resize", "write", "none", "pan"];
 
 export type offsetObj = { x: number; y: number; position: POSITION_TYPES | null };
 
